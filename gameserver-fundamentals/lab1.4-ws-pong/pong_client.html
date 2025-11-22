@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Milestone 1.4 Pong Client</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      padding: 24px;
+    }
+    canvas {
+      background: #000;
+      border: 2px solid #444;
+    }
+    #status {
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pong – Milestone 1.4</h1>
+  <div id="status">Connecting…</div>
+  <canvas id="game" width="800" height="480"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    const state = {
+      role: 'spectator',
+      playerId: null,
+      matchId: 'default',
+      tick: 0,
+      tickRate: 60,
+      ball: { x: 400, y: 240, vx: 0, vy: 0 },
+      paddles: { left: { y: 240, dir: 0 }, right: { y: 240, dir: 0 } },
+      scores: { left: 0, right: 0 },
+      direction: 0,
+      roleInfo: 'Waiting for role assignment…',
+      lastLatencyMs: null,
+      inputSeq: 0
+    };
+
+    // Load player_id from localStorage
+    const storedPlayerId = localStorage.getItem('pong_player_id');
+
+    function updateStatus() {
+      let message = `You are ${state.role}`;
+      if (state.role === 'spectator') {
+        message += ' (waiting for player slot)';
+      }
+      if (state.roleInfo) {
+        message += ` | ${state.roleInfo}`;
+      }
+      if (state.lastLatencyMs !== null) {
+        message += ` | Last input latency: ${state.lastLatencyMs.toFixed(2)} ms`;
+      }
+      if (state.playerId) {
+        message += ` | ID: ${state.playerId}`;
+      }
+      status.textContent = message;
+    }
+
+    const ws = new WebSocket('ws://' + (location.hostname || 'localhost') + ':8081');
+
+    ws.onopen = () => {
+      // Send hello message with stored player_id if available
+      const helloMsg = {
+        type: 'hello',
+        player_id: storedPlayerId || null,
+        match_id: state.matchId,
+        client_time_ms: Date.now()
+      };
+      ws.send(JSON.stringify(helloMsg));
+      updateStatus();
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'welcome') {
+        state.role = data.role;
+        state.playerId = data.player_id;
+        state.matchId = data.match_id || 'default';
+        state.tick = data.tick || 0;
+        state.tickRate = data.tick_rate || 60;
+        
+        // Save player_id to localStorage
+        if (state.playerId) {
+          localStorage.setItem('pong_player_id', state.playerId);
+        }
+
+        if (data.reconnected) {
+          state.roleInfo = 'Reconnected successfully';
+        } else {
+          state.roleInfo = 'Role assigned';
+        }
+        updateStatus();
+        requestAnimationFrame(render);
+
+      } else if (data.type === 'roles') {
+        const slots = data.slots || data.roles; // Support both formats
+        if (slots) {
+          if (slots.left && slots.right) {
+            if (typeof slots.left === 'object') {
+              state.roleInfo = `Slots – Left: ${slots.left.status}, Right: ${slots.right.status}`;
+            } else {
+              state.roleInfo = `Slots – Left: ${slots.left}, Right: ${slots.right}`;
+            }
+          }
+        }
+        updateStatus();
+      } else if (data.type === 'state') {
+        state.tick = data.tick;
+        state.ball = data.ball;
+        // Handle both old and new paddle formats
+        if (data.paddles) {
+          if (typeof data.paddles.left === 'object') {
+            // New format: { left: { y: ..., dir: ... }, right: { y: ..., dir: ... } }
+            state.paddles.left.y = data.paddles.left.y;
+            state.paddles.left.dir = data.paddles.left.dir || 0;
+            state.paddles.right.y = data.paddles.right.y;
+            state.paddles.right.dir = data.paddles.right.dir || 0;
+          } else {
+            // Old format: { left: y_value, right: y_value, left_dir: ..., right_dir: ... }
+            state.paddles.left.y = data.paddles.left;
+            state.paddles.right.y = data.paddles.right;
+            if (data.paddles.left_dir !== undefined) {
+              state.paddles.left.dir = data.paddles.left_dir;
+            }
+            if (data.paddles.right_dir !== undefined) {
+              state.paddles.right.dir = data.paddles.right_dir;
+            }
+          }
+        }
+        state.scores = data.scores;
+      } else if (data.type === 'pong') {
+        // ping response – ignore for now
+      } else if (data.type === 'input-ack') {
+        if (typeof data.latency_ms === 'number') {
+          state.lastLatencyMs = data.latency_ms;
+          updateStatus();
+      }
+    };
+
+    ws.onclose = () => {
+      status.textContent = 'Disconnected from server';
+    };
+
+    function sendDirection(dir) {
+      if (state.role === 'spectator' || ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      if (dir === state.direction) {
+        return;
+      }
+      state.direction = dir;
+      const inputMsg = {
+        type: 'input',
+        match_id: state.matchId,
+        seq: ++state.inputSeq,
+        direction: dir,
+        client_time_ms: Date.now()
+      };
+      ws.send(JSON.stringify(inputMsg));
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (event.repeat) {
+        return;
+      }
+      if (state.role === 'left') {
+        if (event.key === 'w' || event.key === 'W') {
+          sendDirection(-1);
+        } else if (event.key === 's' || event.key === 'S') {
+          sendDirection(1);
+        }
+      } else if (state.role === 'right') {
+        if (event.key === 'ArrowUp') {
+          sendDirection(-1);
+        } else if (event.key === 'ArrowDown') {
+          sendDirection(1);
+        }
+      }
+    });
+
+    window.addEventListener('keyup', (event) => {
+      if (state.role === 'left') {
+        if (event.key === 'w' || event.key === 'W' || event.key === 's' || event.key === 'S') {
+          sendDirection(0);
+        }
+      } else if (state.role === 'right') {
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+          sendDirection(0);
+        }
+      }
+    });
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(canvas.width / 2 - 2, 0, 4, canvas.height);
+
+      ctx.font = '24px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(state.scores.left, canvas.width * 0.25, 32);
+      ctx.fillText(state.scores.right, canvas.width * 0.75, 32);
+
+      ctx.fillRect(24, state.paddles.left.y - 48, 12, 96);
+      ctx.fillRect(canvas.width - 36, state.paddles.right.y - 48, 12, 96);
+
+      ctx.beginPath();
+      ctx.arc(state.ball.x, state.ball.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(render);
+    }
+  }
+  </script>
+</body>
+</html>

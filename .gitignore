@@ -1,0 +1,19 @@
+# Build artifacts 제외 설정
+build/
+*.o
+*.a
+*.so
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+valgrind-*
+
+# OS
+.DS_Store
+Thumbs.db

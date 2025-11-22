@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Milestone 1.3 WebSocket Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; background: #121212; color: #f1f1f1; }
+        h1 { color: #4caf50; }
+        #log { border: 1px solid #444; padding: 1rem; height: 320px; overflow-y: scroll; background: #1e1e1e; }
+        #controls { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        input, button, select { padding: 0.5rem; font-size: 1rem; }
+        .row { display: flex; gap: 0.5rem; align-items: center; }
+        #message { flex: 1; }
+        .system { color: #9e9e9e; }
+        .error { color: #ff6f61; }
+        .badge { background: #4caf50; border-radius: 4px; padding: 0.15rem 0.4rem; margin-left: 0.4rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <h1>Milestone 1.3 – WebSocket Multi-room Chat</h1>
+    <p>Open multiple tabs to simulate concurrent clients. Join different rooms to observe isolated broadcasts.</p>
+    <div class="row">
+        <label for="endpoint">ws://</label>
+        <input id="endpoint" type="text" value="localhost:8080" />
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
+    </div>
+    <div id="log"></div>
+    <div id="controls">
+        <div class="row">
+            <label for="room">Room</label>
+            <select id="room">
+                <option value="lobby" selected>lobby</option>
+                <option value="arena">arena</option>
+                <option value="dev">dev</option>
+                <option value="music">music</option>
+            </select>
+            <button id="join" disabled>Join</button>
+            <button id="leave" disabled>Leave</button>
+        </div>
+        <div class="row">
+            <input id="message" type="text" placeholder="Enter message" disabled />
+            <button id="send" disabled>Send</button>
+        </div>
+        <div class="row">
+            <input id="nickname" type="text" placeholder="Nickname (optional)" disabled />
+            <button id="set-nick" disabled>Set Nick</button>
+            <button id="list-rooms" disabled>List Rooms</button>
+            <button id="list-members" disabled>List Members</button>
+        </div>
+        <div id="membership" class="system">Joined rooms: <span id="rooms-list">(none)</span></div>
+    </div>
+    <script>
+        const endpointInput = document.getElementById('endpoint');
+        const connectButton = document.getElementById('connect');
+        const disconnectButton = document.getElementById('disconnect');
+        const joinButton = document.getElementById('join');
+        const leaveButton = document.getElementById('leave');
+        const sendButton = document.getElementById('send');
+        const messageInput = document.getElementById('message');
+        const roomSelect = document.getElementById('room');
+        const log = document.getElementById('log');
+        const roomsList = document.getElementById('rooms-list');
+        const nicknameInput = document.getElementById('nickname');
+        const setNickButton = document.getElementById('set-nick');
+        const listRoomsButton = document.getElementById('list-rooms');
+        const listMembersButton = document.getElementById('list-members');
+        const membership = new Set();
+        let socket = null;
+
+        function logMessage(text, cssClass = '') {
+            const entry = document.createElement('div');
+            entry.textContent = text;
+            if (cssClass) {
+                entry.className = cssClass;
+            }
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateMembershipDisplay() {
+            if (!membership.size) {
+                roomsList.textContent = '(none)';
+            } else {
+                roomsList.textContent = Array.from(membership).join(', ');
+            }
+        }
+
+        function setConnected(connected) {
+            connectButton.disabled = connected;
+            disconnectButton.disabled = !connected;
+            joinButton.disabled = !connected;
+            leaveButton.disabled = !connected;
+            sendButton.disabled = !connected;
+            messageInput.disabled = !connected;
+            nicknameInput.disabled = !connected;
+            setNickButton.disabled = !connected;
+            listRoomsButton.disabled = !connected;
+            listMembersButton.disabled = !connected;
+
+            if (!connected) {
+                membership.clear();
+                updateMembershipDisplay();
+            }
+        }
+
+        function sendJson(payload) {
+            if (!socket) {
+                return;
+            }
+            socket.send(JSON.stringify(payload));
+        }
+
+        connectButton.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+            }
+            const url = `ws://${endpointInput.value}`;
+            logMessage(`Connecting to ${url} ...`, 'system');
+            socket = new WebSocket(url);
+            socket.addEventListener('open', () => {
+                logMessage('Connected.', 'system');
+                setConnected(true);
+                messageInput.focus();
+            });
+            socket.addEventListener('message', (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleServerMessage(data);
+                } catch (err) {
+                    console.error('Failed to parse server message', err, event.data);
+                    logMessage(event.data, 'system');
+                }
+            });
+            socket.addEventListener('close', () => {
+                logMessage('Disconnected.', 'system');
+                setConnected(false);
+                socket = null;
+            });
+            socket.addEventListener('error', (event) => {
+                console.error(event);
+                logMessage('Error encountered – see console for details.', 'system');
+            });
+        });
+
+        disconnectButton.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+
+        joinButton.addEventListener('click', () => {
+            const room = roomSelect.value.trim();
+            if (!room) {
+                return;
+            }
+            sendJson({ cmd: 'JOIN', room });
+        });
+
+        leaveButton.addEventListener('click', () => {
+            const room = roomSelect.value.trim();
+            if (!room) {
+                return;
+            }
+            sendJson({ cmd: 'LEAVE', room });
+        });
+
+        setNickButton.addEventListener('click', () => {
+            if (!socket) {
+                return;
+            }
+            const name = nicknameInput.value.trim();
+            if (!name) {
+                return;
+            }
+            sendJson({ cmd: 'NICK', name });
+        });
+
+        listRoomsButton.addEventListener('click', () => {
+            sendJson({ cmd: 'LIST_ROOMS' });
+        });
+
+        listMembersButton.addEventListener('click', () => {
+            const room = roomSelect.value.trim();
+            if (!room) return;
+            sendJson({ cmd: 'LIST_MEMBERS', room });
+        });
+
+        sendButton.addEventListener('click', () => {
+            if (!socket) {
+                return;
+            }
+            const text = messageInput.value.trim();
+            if (!text) {
+                return;
+            }
+            const room = roomSelect.value.trim();
+            if (!room) {
+                return;
+            }
+            sendJson({ cmd: 'MSG', room, text });
+            messageInput.value = '';
+            messageInput.focus();
+        });
+
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        nicknameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') setNickButton.click();
+        });
+
+        function handleServerMessage(msg) {
+            switch (msg.type) {
+                case 'INFO':
+                    logMessage(`[info] ${msg.message}`, 'system');
+                    break;
+                case 'ERROR':
+                    logMessage(`[error] ${msg.message}`, 'error');
+                    break;
+                case 'JOINED':
+                    membership.add(msg.room);
+                    updateMembershipDisplay();
+                    logMessage(`[joined] ${msg.room}`, 'system');
+                    break;
+                case 'LEFT':
+                    membership.delete(msg.room);
+                    updateMembershipDisplay();
+                    logMessage(`[left] ${msg.room}`, 'system');
+                    break;
+                case 'MSG':
+                    logMessage(`[${msg.room}] ${msg.from}: ${msg.text}`);
+                    break;
+                case 'ROOM_LIST':
+                    logMessage(`[ROOM_LIST] ${msg.rooms || ''}`, 'system');
+                    break;
+                case 'MEMBER_LIST':
+                    logMessage(`[MEMBER_LIST ${msg.room}] ${msg.members || ''}`, 'system');
+                    break;
+                case 'NICK_OK':
+                    logMessage(`[nick] now known as ${msg.name}`, 'system');
+                    break;
+                default:
+                    logMessage(JSON.stringify(msg));
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
