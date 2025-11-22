@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(gameserver-basics-lab 
-    VERSION 0.1.0 
+project(gameserver-fundamentals
+    VERSION 0.1.0
     LANGUAGES CXX
 )
 
@@ -17,26 +17,26 @@ find_package(Threads REQUIRED)
 
 # ----- Lab build options ----------------------------------------
 
-option(ENABLE_LAB1 "Build lab1: TCP echo server" ON)
-option(ENABLE_LAB2 "Build lab2: Turn-based 10 TPS server" OFF)
-option(ENABLE_LAB3 "Build lab3: WebSocket chat server" OFF)
-option(ENABLE_LAB4 "Build lab4: Pong WebSocket 60 TPS server" OFF)
+option(ENABLE_LAB1_1 "Build lab1.1: TCP echo server" ON)
+option(ENABLE_LAB1_2 "Build lab1.2: Turn-based 10 TPS server" ON)
+option(ENABLE_LAB1_3 "Build lab1.3: WebSocket chat server" ON)
+option(ENABLE_LAB1_4 "Build lab1.4: Pong WebSocket 60 TPS server" ON)
 
 # ----- Subdirectories -------------------------------------------
-if(ENABLE_LAB1)
-    add_subdirectory(src/lab1-tcp-echo)
+if(ENABLE_LAB1_1)
+    add_subdirectory(lab1.1-tcp-echo)
 endif()
 
-if(ENABLE_LAB2)
-    add_subdirectory(src/lab2-turn-based-10tps)
+if(ENABLE_LAB1_2)
+    add_subdirectory(lab1.2-turn-combat)
 endif()
 
-if(ENABLE_LAB3)
-    add_subdirectory(src/lab3-websocket-chat)
+if(ENABLE_LAB1_3)
+    add_subdirectory(lab1.3-ws-chat)
 endif()
 
-if(ENABLE_LAB4)
-    add_subdirectory(src/lab4-pong-60tps)
+if(ENABLE_LAB1_4)
+    add_subdirectory(lab1.4-ws-pong)
 endif()
 
 # ----- Convenience target: re -------------------------------------

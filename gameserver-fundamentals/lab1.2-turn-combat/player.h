@@ -16,7 +16,7 @@ public:
     bool is_alive() const noexcept { return health_ > 0; }
     bool is_connected() const noexcept { return connected_; }
 
-    voide set_id(int id) noexcept { id_ = id; }
+    void set_id(int id) noexcept { id_ = id; }
     void set_name(const std::string& name) { name_ = name; }
     void set_connected(bool connected) noexcept {connected_ = connected; }
     void reset_health(int health) noexcept { health_ = health; }

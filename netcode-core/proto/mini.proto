@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package mini;
+
+message World {
+  enum Role {
+    ROLE_SPECTATOR = 0;
+    ROLE_LEFT = 1;
+    ROLE_RIGHT = 2;
+  }
+}
+
+message Input {
+  uint32 client_seq = 1;
+  uint64 timestamp_ns = 2;
+  int32 dx = 3;
+  int32 dy = 4;
+  bool fire = 5;
+}
+
+message Snapshot {
+  uint32 tick = 1;
+  bool is_keyframe = 2;
+  uint32 base_tick = 3;
+  bytes state = 4;
+  World.Role role = 5;
+}
+
+message ServerAck {
+  uint32 last_client_seq = 1;
+  uint32 server_tick = 2;
+}

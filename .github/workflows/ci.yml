@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+
+jobs:
+  gameserver-fundamentals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev protobuf-compiler libprotobuf-dev libhiredis-dev
+
+      - name: Configure gameserver-fundamentals
+        run: |
+          cmake -S gameserver-fundamentals -B build/gameserver \
+            -DENABLE_LAB1_1=ON -DENABLE_LAB1_2=ON -DENABLE_LAB1_3=ON -DENABLE_LAB1_4=ON
+
+      - name: Build gameserver-fundamentals
+        run: cmake --build build/gameserver --config Debug
+
+  netcode-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev protobuf-compiler libprotobuf-dev libhiredis-dev
+
+      - name: Configure netcode-core
+        run: cmake -S netcode-core -B build/netcode-core -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build netcode-core
+        run: cmake --build build/netcode-core --config Debug

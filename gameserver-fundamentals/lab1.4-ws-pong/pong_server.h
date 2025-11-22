@@ -202,8 +202,10 @@ inline void PongServer::stop() {
             }
         }
         sessions_.clear();
-        left_player_.reset();
-        right_player_.reset();
+        left_slot_ = {};
+        right_slot_ = {};
+        pending_left_ack_ = {};
+        pending_right_ack_ = {};
     }
 
     boost::beast::error_code ec;
@@ -367,7 +369,7 @@ inline void PongServer::broadcast_state(const GameSnapshot &snapshot) {
     boost::json::object state;
     state["type"] = "state";
     state["match_id"] = "default";
-     state["tick"] = snapshot.tick;
+    state["tick"] = snapshot.tick;
     state["server_time_ms"] = get_server_time_ms();
     boost::json::object ball;
     ball["x"] = snapshot.ball_x;
@@ -381,6 +383,7 @@ inline void PongServer::broadcast_state(const GameSnapshot &snapshot) {
     boost::json::object right_paddle;
     right_paddle["y"] = snapshot.right_paddle_y;
     right_paddle["dir"] = snapshot.right_direction;
+    boost::json::object paddles;
     paddles["left"] = left_paddle;
     paddles["right"] = right_paddle;
     state["paddles"] = paddles;
@@ -550,12 +553,11 @@ inline void PongServer::game_loop() {
         if (!running_.load()) {
             break;
         }
+        const auto snapshot = game_.update(dt);
         // Cleanup reconnect timeouts every 60 ticks
         if (snapshot.tick % 60 == 0) {
             cleanup_reconnect_timeouts();
         }
-
-        const auto snapshot = game_.update(dt);
         broadcast_state(snapshot);
         next_tick += frame_duration;
 
