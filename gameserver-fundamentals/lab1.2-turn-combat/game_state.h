@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <mutex>
 #include <optional>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -35,7 +36,7 @@ public:
 
     void add_or_update_player(int id, std::string name);
     void mark_player_disconnected(int id);
-    void start_if_game();
+    void start_if_ready();
 
     void apply_attack(int attacker_id);
     void advance_tick();
@@ -84,7 +85,7 @@ inline void GameState::mark_player_disconnected(int id) {
     player.set_connected(false);
     if (running_ && !game_over_) {
         game_over_ = true;
-        runner_ = false;
+        running_ = false;
         last_action_ = player.name() + " disconnected.";
         for (const Player& candidate : players_) {
             if (candidate.id() != player.id() && candidate.is_connected()) {
@@ -179,9 +180,9 @@ inline StateSnapshot GameState::snapshot() const {
     snapshot.running = running_;
     snapshot.game_over = game_over_;
     if (running_ && players_.size() >= 2) {
-        snapshot.current_turn_player = players_[static_cast<std::size_t>(current_turn_index_)].id();
+        snapshot.current_turn_player_id = players_[static_cast<std::size_t>(current_turn_index_)].id();
     } else if (!running_ && !game_over_ && players_.size() >= 1) {
-        snapshot.current_turn_player.reset();
+        snapshot.current_turn_player_id.reset();
     }
     snapshot.winner_id = winner_id_;
     snapshot.last_action = last_action_;

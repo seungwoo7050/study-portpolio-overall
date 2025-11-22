@@ -8,7 +8,8 @@ add_library(pong_udp_lib STATIC
 target_include_directories(pong_udp_lib
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}
+        ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(pong_udp_lib

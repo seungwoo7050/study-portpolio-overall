@@ -8,7 +8,7 @@ add_library(sync
 
 target_include_directories(sync
     PUBLIC
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}
 )
 
 target_link_libraries(sync

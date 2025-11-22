@@ -5,6 +5,8 @@ add_library(lab1-tcp-echo
     echo_server.cpp
 )
 
+add_library(milestone_1_1_lib ALIAS lab1-tcp-echo)
+
 # 이 디렉터리를 include path 로 노출
 target_include_directories(lab1-tcp-echo
     PUBLIC

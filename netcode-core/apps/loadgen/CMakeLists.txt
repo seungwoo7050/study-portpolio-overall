@@ -7,8 +7,8 @@ add_executable(loadgen
 )
 
 target_include_directories(loadgen PRIVATE
-  ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_BINARY_DIR}/proto
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_BINARY_DIR}
   ${Protobuf_INCLUDE_DIRS}
 )
 

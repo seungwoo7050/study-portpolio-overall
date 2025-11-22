@@ -24,6 +24,8 @@ public:
 
   EncodedSnapshot encode(const core::WorldState &state);
 
+  EncodedSnapshot encode_keyframe(const core::WorldState &state);
+
   [[nodiscard]] std::optional<core::WorldState>
   find_state(std::uint64_t tick) const;
 

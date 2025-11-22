@@ -7,7 +7,7 @@ add_library(net_udp STATIC
 target_include_directories(net_udp
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}
 )
 
 target_link_libraries(net_udp

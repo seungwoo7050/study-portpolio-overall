@@ -1,6 +1,6 @@
 #include "game_loop.h"
 
-#include "../milestone-1.1/socket.h"
+#include "../lab1.1-tcp-echo/socket.h"
 
 #include <algorithm>
 #include <atomic>

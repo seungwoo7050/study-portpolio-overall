@@ -10,34 +10,46 @@ SnapshotGenerator::SnapshotGenerator(std::uint32_t keyframe_interval,
     : keyframe_interval_(keyframe_interval), history_size_(history_size) {}
 
 EncodedSnapshot SnapshotGenerator::encode(const core::WorldState &state) {
-  EncodedSnapshot encoded;
-  encoded.tick = state.tick;
-
   const bool should_emit_keyframe =
       !has_keyframe_ || state.tick <= last_keyframe_tick_ ||
       state.tick - last_keyframe_tick_ >= keyframe_interval_;
 
   if (should_emit_keyframe) {
-    encoded.is_keyframe = true;
-    encoded.base_tick = state.tick;
-    encoded.payload = codec_.encode_keyframe(state);
-    last_keyframe_tick_ = state.tick;
-    has_keyframe_ = true;
+    return encode_keyframe(state);
+  }
+
+  EncodedSnapshot encoded;
+  encoded.tick = state.tick;
+  const auto base_state = find_state(last_keyframe_tick_);
+  if (!base_state) {
+    return encode_keyframe(state);
   } else {
-    const auto base_state = find_state(last_keyframe_tick_);
-    if (!base_state) {
-      encoded.is_keyframe = true;
-      encoded.base_tick = state.tick;
-      encoded.payload = codec_.encode_keyframe(state);
-      last_keyframe_tick_ = state.tick;
-    } else {
-      encoded.is_keyframe = false;
-      encoded.base_tick = last_keyframe_tick_;
-      encoded.payload = codec_.encode_delta(*base_state, state);
-    }
+    encoded.is_keyframe = false;
+    encoded.base_tick = last_keyframe_tick_;
+    encoded.payload = codec_.encode_delta(*base_state, state);
   }
 
   store_state(state);
+  const auto history_span = static_cast<std::uint64_t>(history_size_);
+  const auto min_tick = state.tick >= history_span ? state.tick - history_span
+                                                   : 0ULL;
+  prune_history(min_tick);
+
+  return encoded;
+}
+
+EncodedSnapshot SnapshotGenerator::encode_keyframe(
+    const core::WorldState &state) {
+  EncodedSnapshot encoded;
+  encoded.tick = state.tick;
+  encoded.is_keyframe = true;
+  encoded.base_tick = state.tick;
+  encoded.payload = codec_.encode_keyframe(state);
+
+  store_state(state);
+  last_keyframe_tick_ = state.tick;
+  has_keyframe_ = true;
+
   const auto history_span = static_cast<std::uint64_t>(history_size_);
   const auto min_tick = state.tick >= history_span ? state.tick - history_span
                                                    : 0ULL;
