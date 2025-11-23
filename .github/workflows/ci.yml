@@ -1,0 +1,318 @@
+name: Repository CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'feature/**'
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+      - master
+
+jobs:
+  backend-node:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    defaults:
+      run:
+        working-directory: backend/node.js
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+
+      - name: Run unit tests
+        run: npm test
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+          NODE_ENV: test
+
+      - name: Build
+        run: npm run build
+
+  backend-spring:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/spring
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew || echo "gradlew not found, using gradle command"
+
+      - name: Run tests
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew clean test
+          else
+            gradle clean test
+          fi
+
+      - name: Generate test report
+        if: always()
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew test --info || true
+          else
+            gradle test --info || true
+          fi
+
+  react-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react/frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: react/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build
+
+  video-editor-frontend:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: video-editor/frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: video-editor/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: video-editor/frontend/dist/
+
+  video-editor-backend:
+    runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: vrewcraft_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    defaults:
+      run:
+        working-directory: video-editor/backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: video-editor/backend/package-lock.json
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        env:
+          DB_HOST: localhost
+          DB_NAME: vrewcraft_test
+          DB_USER: test
+          DB_PASSWORD: test
+          REDIS_HOST: localhost
+        run: npm test
+
+  video-editor-native:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: video-editor/native
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install FFmpeg development libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libavformat-dev \
+            libavcodec-dev \
+            libavutil-dev \
+            libswscale-dev \
+            build-essential \
+            python3
+
+      - name: Build native addon
+        run: |
+          npm install node-gyp -g
+          npm install node-addon-api
+          node-gyp configure
+          node-gyp build
+
+      - name: Run valgrind (memory check)
+        run: |
+          sudo apt-get install -y valgrind
+          # Add valgrind test when native module has tests
+
+  video-editor-integration:
+    runs-on: ubuntu-22.04
+    needs: [video-editor-frontend, video-editor-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start services
+        working-directory: video-editor
+        run: docker compose -f deployments/docker/docker-compose.yml up -d
+
+      - name: Wait for services
+        working-directory: video-editor
+        run: |
+          sleep 10
+          echo "=== Backend logs ==="
+          docker compose -f deployments/docker/docker-compose.yml logs backend
+          echo "=== Checking backend health ==="
+          curl --retry 5 --retry-delay 2 http://localhost:3001/health
+
+      - name: Run E2E tests (placeholder)
+        run: |
+          echo "E2E tests would run here"
+          # Add when E2E tests implemented
+
+      - name: Stop services
+        working-directory: video-editor
+        run: docker compose -f deployments/docker/docker-compose.yml down
+
+  gameserver-fundamentals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev protobuf-compiler libprotobuf-dev libhiredis-dev
+
+      - name: Configure gameserver-fundamentals
+        run: |
+          cmake -S game-server/gameserver-fundamentals -B build/gameserver \
+            -DENABLE_LAB1_1=ON -DENABLE_LAB1_2=ON -DENABLE_LAB1_3=ON -DENABLE_LAB1_4=ON
+
+      - name: Build gameserver-fundamentals
+        run: cmake --build build/gameserver --config Debug
+
+  netcode-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev protobuf-compiler libprotobuf-dev libhiredis-dev
+
+      - name: Configure netcode-core
+        run: cmake -S game-server/netcode-core -B build/netcode-core -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build netcode-core
+        run: cmake --build build/netcode-core --config Debug
