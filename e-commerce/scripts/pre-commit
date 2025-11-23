@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# Pre-commit hook for Sagaline project
+# This hook ensures code quality before commits
+#
+# To install:
+#   chmod +x scripts/pre-commit
+#   cp scripts/pre-commit .git/hooks/pre-commit
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Check for executable binaries
+echo "📦 Checking for executable binaries..."
+EXECUTABLE_BINARIES=$(git ls-files -z \
+  | xargs -0 file --mime-type \
+  | grep -E "application/(x-executable|x-mach-binary|x-dosexec)" \
+  || true)
+
+if [ -n "$EXECUTABLE_BINARIES" ]; then
+  echo -e "${RED}❌ Error: Executable binaries detected in repository:${NC}"
+  echo "$EXECUTABLE_BINARIES"
+  echo ""
+  echo "Remove compiled executables from version control before committing."
+  exit 1
+fi
+echo -e "${GREEN}✓ No executable binaries found${NC}"
+
+# Check for sensitive information
+echo "🔐 Checking for sensitive information..."
+SENSITIVE_PATTERNS=(
+  "password.*=.*['\"].*['\"]"
+  "api[_-]?key.*=.*['\"].*['\"]"
+  "secret.*=.*['\"].*['\"]"
+  "aws[_-]?access[_-]?key"
+  "private[_-]?key"
+)
+
+SENSITIVE_FOUND=false
+for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+  if git diff --cached --diff-filter=ACM | grep -iE "$pattern" > /dev/null; then
+    echo -e "${RED}❌ Warning: Potential sensitive information found:${NC}"
+    git diff --cached --diff-filter=ACM | grep -iE "$pattern" || true
+    SENSITIVE_FOUND=true
+  fi
+done
+
+if [ "$SENSITIVE_FOUND" = true ]; then
+  echo ""
+  echo -e "${YELLOW}⚠️  Please review the above matches. If they are false positives, you can proceed.${NC}"
+  echo "If real secrets, please remove them and use environment variables instead."
+  read -p "Continue anyway? (y/N) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+else
+  echo -e "${GREEN}✓ No sensitive information detected${NC}"
+fi
+
+# Check Java formatting (if using Spring Boot)
+if [ -f "pom.xml" ]; then
+  echo "☕ Checking Java code..."
+
+  # Quick compile check (no tests)
+  if ! mvn clean compile -q -DskipTests > /dev/null 2>&1; then
+    echo -e "${RED}❌ Maven compilation failed${NC}"
+    echo "Please fix compilation errors before committing."
+    exit 1
+  fi
+  echo -e "${GREEN}✓ Java code compiles successfully${NC}"
+fi
+
+# Check for TODO/FIXME in staged files
+echo "📝 Checking for TODO/FIXME markers..."
+TODO_COUNT=$(git diff --cached --diff-filter=ACM | grep -E "^\+.*\b(TODO|FIXME|XXX|HACK)\b" | wc -l || true)
+if [ "$TODO_COUNT" -gt 0 ]; then
+  echo -e "${YELLOW}⚠️  Found $TODO_COUNT new TODO/FIXME markers${NC}"
+  git diff --cached --diff-filter=ACM | grep -E "^\+.*\b(TODO|FIXME|XXX|HACK)\b" || true
+  echo ""
+  echo "Consider creating issues for these items."
+fi
+
+# Check commit message format (if .git/COMMIT_EDITMSG exists)
+if [ -f ".git/COMMIT_EDITMSG" ]; then
+  echo "📋 Checking commit message format..."
+  COMMIT_MSG=$(head -n 1 .git/COMMIT_EDITMSG)
+
+  # Check if commit message starts with conventional commit type
+  if ! echo "$COMMIT_MSG" | grep -qE "^(feat|fix|docs|test|refactor|perf|chore|style|ci|build)(\(.+\))?: .+"; then
+    echo -e "${YELLOW}⚠️  Commit message doesn't follow conventional commits format${NC}"
+    echo "Expected format: <type>: <subject>"
+    echo "Types: feat, fix, docs, test, refactor, perf, chore"
+    echo ""
+    echo "Current message: $COMMIT_MSG"
+    echo ""
+  else
+    echo -e "${GREEN}✓ Commit message format looks good${NC}"
+  fi
+fi
+
+echo ""
+echo -e "${GREEN}✅ All pre-commit checks passed!${NC}"
+echo ""
+
+exit 0

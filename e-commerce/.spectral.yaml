@@ -1,0 +1,43 @@
+extends: spectral:oas
+
+rules:
+  # Info rules
+  info-contact: true
+  info-description: true
+  info-license: true
+
+  # Operation rules
+  operation-description: true
+  operation-operationId: true
+  operation-summary: true
+  operation-tags: true
+  operation-tag-defined: true
+
+  # Parameter rules
+  operation-parameters: true
+  path-params: true
+
+  # Response rules
+  operation-success-response: true
+
+  # Security rules
+  operation-security-defined: off  # Will enable after Stage 1
+
+  # Schema rules
+  oas3-schema: true
+
+  # Custom rules for Sagaline
+  no-empty-description:
+    description: Descriptions must not be empty
+    severity: warn
+    given: $.paths.*[get,post,put,patch,delete].description
+    then:
+      function: truthy
+
+  require-error-responses:
+    description: Operations should define common error responses
+    severity: warn
+    given: $.paths.*[get,post,put,patch,delete].responses
+    then:
+      field: "400"
+      function: falsy  # Just a warning for now

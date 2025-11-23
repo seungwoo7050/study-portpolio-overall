@@ -1,0 +1,222 @@
+openapi: 3.0.3
+info:
+  title: Sagaline API
+  version: 0.1.0
+  description: |
+    E-commerce platform API for Korean market
+
+    Features:
+    - User management with Kakao OAuth
+    - Product catalog with Korean search (Nori tokenizer)
+    - Shopping cart and order management
+    - Toss Payments integration
+    - Inventory management
+    - PIPA compliance (Korean data protection)
+
+  contact:
+    name: Sagaline API Support
+    email: api@sagaline.com
+
+  license:
+    name: Proprietary
+    url: https://sagaline.com/license
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+  - url: https://api.sagaline.com
+    description: Production server
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Users
+    description: User management and authentication
+  - name: Products
+    description: Product catalog management
+  - name: Orders
+    description: Order processing and tracking
+  - name: Payments
+    description: Payment processing with Toss Payments
+  - name: Inventory
+    description: Inventory and stock management
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the service
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+                    enum:
+                      - UP
+                      - DOWN
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-11-15T13:49:03Z"
+                  service:
+                    type: string
+                    example: sagaline
+                  version:
+                    type: string
+                    example: "0.1.0"
+                required:
+                  - status
+                  - timestamp
+                  - service
+                  - version
+
+  # Additional endpoints will be added in Stage 1:
+  # /users/register
+  # /users/login
+  # /users/{id}
+  # /products
+  # /products/{id}
+  # /cart
+  # /orders
+  # /orders/{id}
+  # /payments/process
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+    OAuth2:
+      type: oauth2
+      description: Kakao OAuth 2.0
+      flows:
+        authorizationCode:
+          authorizationUrl: https://kauth.kakao.com/oauth/authorize
+          tokenUrl: https://kauth.kakao.com/oauth/token
+          scopes:
+            profile: Access user profile information
+            account_email: Access user email address
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          example: "Invalid request parameters"
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/api/users/register"
+      required:
+        - code
+        - message
+        - timestamp
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - UP
+            - DOWN
+        timestamp:
+          type: string
+          format: date-time
+        service:
+          type: string
+        version:
+          type: string
+      required:
+        - status
+        - timestamp
+        - service
+        - version
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  parameters:
+    PageNumber:
+      name: page
+      in: query
+      description: Page number (0-indexed)
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    PageSize:
+      name: size
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    SortBy:
+      name: sort
+      in: query
+      description: Sort field and direction (e.g., "createdAt,desc")
+      required: false
+      schema:
+        type: string
+        example: "createdAt,desc"
+
+# Note: This is a skeleton specification
+# Full API documentation will be added progressively during Stage 1-9

@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    com.sagaline: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: always
