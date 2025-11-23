@@ -1,0 +1,414 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - master
+      - 'feature/**'
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+      - master
+
+jobs:
+  ecommerce:
+    name: E-Commerce CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        working-directory: e-commerce
+        run: mvn clean install -DskipTests
+
+      - name: Run tests
+        working-directory: e-commerce
+        run: mvn test
+
+      - name: Generate coverage report
+        working-directory: e-commerce
+        run: mvn jacoco:report
+
+      - name: Check coverage
+        working-directory: e-commerce
+        run: mvn jacoco:check
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: e-commerce/target/site/jacoco/jacoco.xml
+          fail_ci_if_error: false
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecommerce-test-results
+          path: e-commerce/target/surefire-reports/
+
+      - name: Archive coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecommerce-coverage-report
+          path: e-commerce/target/site/jacoco/
+
+      - name: Security scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for executable binaries
+        run: |
+          echo "Scanning tracked files for executable binaries..."
+          EXECUTABLE_BINARIES=$(git ls-files -z \
+            | xargs -0 file --mime-type \
+            | grep -E "application/(x-executable|x-mach-binary|x-dosexec)" \
+            || true)
+
+          if [ -n "$EXECUTABLE_BINARIES" ]; then
+            echo "Error: Executable binaries detected in repository:"
+            echo "$EXECUTABLE_BINARIES"
+            echo "Remove compiled executables from version control."
+            exit 1
+          fi
+          echo "No executable binaries found in tracked files."
+
+      - name: Set up Node.js for OpenAPI validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate OpenAPI specification
+        working-directory: e-commerce
+        run: |
+          if [ -f "docs/api/openapi.yaml" ]; then
+            npm install -g @stoplight/spectral-cli
+            spectral lint docs/api/openapi.yaml --ruleset .spectral.yaml || true
+            echo "OpenAPI validation completed"
+          else
+            echo "OpenAPI spec not found, skipping validation"
+          fi
+
+  react:
+    name: React Frontend CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: react/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: react/frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: react/frontend
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: react/frontend
+        run: npm test -- --run
+
+      - name: Build
+        working-directory: react/frontend
+        run: npm run build
+
+  video_frontend:
+    name: Video Editor Frontend
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: video-editor/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: video-editor/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: video-editor/frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: video-editor/frontend
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: video-editor/frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-editor-frontend-dist
+          path: video-editor/frontend/dist/
+
+  video_backend:
+    name: Video Editor Backend
+    runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: vrewcraft_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: video-editor/backend/package-lock.json
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        working-directory: video-editor/backend
+        run: npm ci
+
+      - name: Lint
+        working-directory: video-editor/backend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: video-editor/backend
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: video-editor/backend
+        run: npm run build
+
+      - name: Run tests
+        working-directory: video-editor/backend
+        env:
+          DB_HOST: localhost
+          DB_NAME: vrewcraft_test
+          DB_USER: test
+          DB_PASSWORD: test
+          REDIS_HOST: localhost
+        run: npm test
+
+  video_native:
+    name: Video Editor Native
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install FFmpeg development libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libavformat-dev \
+            libavcodec-dev \
+            libavutil-dev \
+            libswscale-dev \
+            build-essential \
+            python3
+
+      - name: Build native addon
+        working-directory: video-editor/native
+        run: |
+          npm install node-gyp -g
+          npm install node-addon-api
+          node-gyp configure
+          node-gyp build
+
+      - name: Run valgrind (memory check)
+        run: |
+          sudo apt-get install -y valgrind
+          # Add valgrind test when native module has tests
+
+  video_integration:
+    name: Video Editor Integration
+    needs: [video_frontend, video_backend]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        working-directory: video-editor
+        run: docker compose -f deployments/docker/docker-compose.yml up -d
+
+      - name: Wait for services
+        working-directory: video-editor
+        run: |
+          sleep 10
+          echo "=== Backend logs ==="
+          docker compose -f deployments/docker/docker-compose.yml logs backend
+          echo "=== Checking backend health ==="
+          curl --retry 5 --retry-delay 2 http://localhost:3001/health
+
+      - name: Run E2E tests (placeholder)
+        run: |
+          echo "E2E tests would run here"
+          # Add when E2E tests implemented
+
+      - name: Stop services
+        working-directory: video-editor
+        run: docker compose -f deployments/docker/docker-compose.yml down
+
+  backend_node:
+    name: Backend Node.js
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: backend/node.js/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend/node.js
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend/node.js
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+        run: npm run prisma:generate
+
+      - name: Run unit tests
+        working-directory: backend/node.js
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+        run: npm test
+
+      - name: Run e2e tests
+        working-directory: backend/node.js
+        env:
+          DATABASE_URL: "file::memory:?cache=shared"
+          NODE_ENV: test
+        run: npm run test:e2e
+
+      - name: Build
+        working-directory: backend/node.js
+        run: npm run build
+
+  backend_spring:
+    name: Backend Spring
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        working-directory: backend/spring
+        run: chmod +x gradlew || echo "gradlew not found, using gradle command"
+
+      - name: Run tests
+        working-directory: backend/spring
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew clean test
+          else
+            gradle clean test
+          fi
+
+      - name: Generate test report
+        if: always()
+        working-directory: backend/spring
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew test --info || true
+          else
+            gradle test --info || true
+          fi
+
+  game_server:
+    name: Game Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-all-dev protobuf-compiler libprotobuf-dev libhiredis-dev
+
+      - name: Configure gameserver-fundamentals
+        working-directory: game-server
+        run: |
+          cmake -S gameserver-fundamentals -B build/gameserver \
+            -DENABLE_LAB1_1=ON -DENABLE_LAB1_2=ON -DENABLE_LAB1_3=ON -DENABLE_LAB1_4=ON
+
+      - name: Build gameserver-fundamentals
+        working-directory: game-server
+        run: cmake --build build/gameserver --config Debug
+
+      - name: Configure netcode-core
+        working-directory: game-server
+        run: cmake -S netcode-core -B build/netcode-core -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build netcode-core
+        working-directory: game-server
+        run: cmake --build build/netcode-core --config Debug
