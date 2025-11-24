@@ -84,8 +84,9 @@
   * 고정 타임스텝(fixed timestep) 패턴
   * 기본 상태 동기화 (브로드캐스트)
 
-* **T11-2 – UDP 넷코드 + 권위 서버 (lab1.5~1.6용)**
+* **T11-2 – UDP 넷코드 + 권위 서버 (netcode-core 프로젝트용)**
 
+  * **gameserver-fundamentals와 별도 프로젝트**: lab1.1-1.4 완료 후 진행하는 독립 프로젝트
   * **UDP 소켓 기초**: bind, sendto/recvfrom, non-blocking IO
   * **신뢰성 계층 구현**: sequence number, ack, ack_bits (32-frame window)
   * **권위 서버(Authoritative Server) 패턴**: 클라이언트 입력 검증, 서버 시뮬레이션
@@ -142,9 +143,9 @@
 | **15–25**  | **v1.1 Trim/Split** 구현 (ffmpeg CLI로 잘라내기/분할)                            | **N2.0 Nest Bootstrap** 시작 (CI, Prisma+SQLite)      | M1 마무리                                              | –                                                  | **T3 Nest 기본** (T1, T2 기반에서 바로 씀)                                           |
 | **25–32**  | **v1.2 자막/배속 처리** (필터 몇 개 추가)                                           | **N2.1 Issue CRUD + JWT** (레이어드 아키텍처, Prisma 트랜잭션)  | **M2 Issue Tracker CRUD** (React Query + 폼)         | –                                                  | **T4 DB+Redis+WS의 "DB/CRUD 부분" + T7 React Query/RHF**                       |
 | **32–40**  | **v1.3 WebSocket 진행률 + PostgreSQL 프로젝트 저장 + Redis 캐시** 완성               | **N2.2 팀/RBAC + N2.3 통계/캐시/외부 API** 진행              | **M3 로그인/팀/RBAC UX**                                | –                                                  | **T4 DB+Redis+WS 전체** (WebSocket/Redis 패턴을 여기서 학습→곧바로 v1.3에 적용)             |
-| **40–50**  | 메인 기능 잠깐 유지보수만                                                          | –                                                   | –                                                   | **lab1.1 TCP 에코 → lab1.2 턴제 전투**                  | **T10 Modern C++ + TCP 소켓 + 패킷 직렬화**                                        |
-| **50–60**  | –                                                                       | –                                                   | –                                                   | **lab1.3 WS 멀티룸 채팅 → lab1.4 Pong 게임 서버 (고정 타임스텝)** | **T11 Boost.Asio/Beast WebSocket + 게임 루프 기초**                              |
-| **60–68**  | –                                                                       | –                                                   | –                                                   | **lab1.5 UDP 신뢰성 + 권위 서버 → lab1.6 넷코드 완성**        | **T11-2 UDP 넷코드 (스냅샷/델타, 예측/리컨실리에이션, 60 TPS)**                             |
+| **40–50**  | 메인 기능 잠깐 유지보수만                                                          | –                                                   | –                                                   | **gameserver-fundamentals: lab1.1 TCP 에코 → lab1.2 턴제 전투**                  | **T10 Modern C++ + TCP 소켓 + 패킷 직렬화**                                        |
+| **50–60**  | –                                                                       | –                                                   | –                                                   | **gameserver-fundamentals: lab1.3 WS 멀티룸 채팅 → lab1.4 Pong 게임 서버** | **T11 Boost.Asio/Beast WebSocket + 게임 루프 기초**                              |
+| **60–68**  | –                                                                       | –                                                   | –                                                   | **netcode-core 프로젝트: 1.0 UDP 신뢰성 → 1.3 넷코드 완성**        | **T11-2 UDP 넷코드 (스냅샷/델타, 예측/리컨실리에이션, 60 TPS)**                             |
 | **68–78**  | **v2.0 Native addon + v2.1 Thumbnail + v2.2 Metadata(FFmpeg C API)** 구현 | **N2.4 Elasticsearch 검색 + N2.5 Kafka 이벤트** 마무리      | **M4 통계 대시보드 + M5 상품 검색 페이지** (Stats/Search API 소비) | C++ 서버는 polishing (Redis 세션, PG 리더보드)               | **T12 Node-API + FFmpeg C API** + **T5 고급 백엔드(ES/Kafka)** + **T8 통계/검색 UI** |
 | **78–93**  | **v2.3 성능 모니터링 + v3.0 프로덕션 배포 (Docker, Reverse proxy, 모니터링)**           | Nest 프로젝트도 Docker/배포/모니터링 최소 적용                     | **M6 테스트 & 접근성 (Playwright, a11y)**                 | 게임 서버도 메트릭/부하 테스트 추가                                | **T13 Docker/배포/모니터링** + **T9 테스트/접근성**                                     |
 | **93–100** | v1~v3 코드 리팩터링, README/설계 문서/데모 영상 정리                                    | Node/Nest/React/C++ 4레포 포트폴리오화                      | 동일                                                  | 동일                                                 | 추가 튜토리얼 없음, 문서화/정리 단계                                                       |
@@ -194,17 +195,19 @@ graph LR
   VE3 -. 병렬 .- N3["32-40: N2.2/2.3 (팀/RBAC + 통계/캐시)"]
   VE5 -. 병렬 .- N4["68-78: T5 + N2.4/2.5 (검색 + Kafka 이벤트)"]
 
-  %% C++ / 게임서버 / 넷코드 가지 (확장됨)
-  VE4 -. 병렬 .- C1["40-50: T10 + lab1.1/1.2 (TCP 에코/턴제)"]
-  C1 --> C2["50-60: T11 + lab1.3/1.4 (WS 채팅/Pong + 게임 루프)"]
-  C2 --> C3["60-68: T11-2 + lab1.5/1.6 (UDP 넷코드 + 권위 서버)"]
+  %% C++ / 게임서버 가지 (gameserver-fundamentals)
+  VE4 -. 병렬 .- C1["40-50: T10 + gameserver-fundamentals lab1.1/1.2 (TCP 에코/턴제)"]
+  C1 --> C2["50-60: T11 + gameserver-fundamentals lab1.3/1.4 (WS 채팅/Pong)"]
+
+  %% netcode-core 별도 프로젝트 가지
+  C2 --> C3["60-68: T11-2 + netcode-core 1.0-1.3 (UDP 넷코드 프로젝트)"]
   C3 -. 경험 재사용 .- VE5
 
-  %% 넷코드 세부 단계 (상세)
-  C3 -.-> NC1["UDP 신뢰성 계층 구현"]
-  C3 -.-> NC2["스냅샷/델타 동기화"]
-  C3 -.-> NC3["클라이언트 예측 + 리컨실리에이션"]
-  C3 -.-> NC4["60 TPS 안정화 + 부하 테스트"]
+  %% 넷코드 세부 단계 (netcode-core 프로젝트)
+  C3 -.-> NC1["1.0: UDP 신뢰성 계층 구현"]
+  C3 -.-> NC2["1.1: 스냅샷/델타 동기화"]
+  C3 -.-> NC3["1.2: 클라이언트 예측 + 리컨실리에이션"]
+  C3 -.-> NC4["1.3: 60 TPS 안정화 + 부하 테스트"]
 ```
 
 이 그림에서 보면:
@@ -215,7 +218,7 @@ graph LR
   * React / Nest / C++ 튜토리얼 + 서브 프로젝트가 **짧게 튀어나왔다가 다시 합류**하는 구조다.
 * **C++ 쪽에서 익힌 네트워크/게임 루프/WS 감각**은 v2.x NativeAddon + 메트릭에 간접적으로 도움.
 * **새롭게 강조된 넷코드 가지(C3)**:
-  * lab1.5/1.6에서 **UDP 신뢰성 계층, 스냅샷/델타, 예측/리컨실리에이션**을 실제 구현
+  * **netcode-core 별도 프로젝트**(gameserver-fundamentals 이후 진행)에서 **UDP 신뢰성 계층, 스냅샷/델타, 예측/리컨실리에이션**을 실제 구현
   * 이는 게임 서버 개발자 포지션의 **핵심 차별화 요소**
   * 크래프톤/넥슨/넷마블 등 게임사 지원 시 **실전 넷코드 경험**으로 강력한 어필 포인트
 
@@ -238,7 +241,7 @@ graph LR
 
      * React Milestone (M1~M6)
      * Nest Milestone (N2.0~N2.5)
-     * **C++ lab (1.1~1.6, 넷코드 포함)**
+     * **C++ gameserver-fundamentals (lab1.1~1.4) + netcode-core 별도 프로젝트**
        를 **짧게 붙였다가 다시 합류**시키는 형태로 재배치했다.
 
 3. **"배우고 바로 써먹기"**
@@ -246,8 +249,8 @@ graph LR
    * T4(DB+Redis+WS) → 바로 N2.3 + v1.3
    * T12(Node-API+FFmpeg C API) → 바로 video-editor v2.x
    * T8(통계/검색 UI) → 바로 M4/M5
-   * T10/T11(C++ 네트워크/WS) → 바로 lab1.x
-   * **T11-2(UDP 넷코드) → 바로 lab1.5/1.6**
+   * T10/T11(C++ 네트워크/WS) → 바로 gameserver-fundamentals lab1.1-1.4
+   * **T11-2(UDP 넷코드) → 바로 netcode-core 프로젝트 1.0-1.3**
      * **스냅샷/델타 동기화**: 대역폭 최적화로 실시간 멀티플레이어 가능
      * **클라이언트 예측**: 네트워크 지연에도 부드러운 UX
      * **서버 리컨실리에이션**: 클라이언트-서버 불일치 해결
@@ -264,7 +267,7 @@ graph LR
 
 ## 4) 넷코드 학습 로드맵 세부 사항
 
-### 4-1. lab1.5: UDP 신뢰성 계층 + 권위 서버 기초
+### 4-1. netcode-core 1.0: UDP 신뢰성 계층 + 권위 서버 기초
 
 **목표**: TCP의 신뢰성을 UDP 위에서 직접 구현하고, 권위 서버 패턴 이해
 
@@ -297,7 +300,7 @@ graph LR
 
 ---
 
-### 4-2. lab1.6: 스냅샷/델타 + 예측/리컨실리에이션
+### 4-2. netcode-core 1.1-1.3: 스냅샷/델타 + 예측/리컨실리에이션
 
 **목표**: 실전 넷코드 최적화 기법 모두 구현
 
@@ -607,7 +610,7 @@ graph LR
 
    * HTTP 업그레이드로 시작되는 구조
    * 왜 실시간에 적합한지, Ping/Pong
-   * **게임 서버에서 WebSocket vs UDP 트레이드오프** (lab1.4 vs lab1.5)
+   * **게임 서버에서 WebSocket vs UDP 트레이드오프** (gameserver-fundamentals lab1.4 vs netcode-core 1.0)
 
 5. DNS & 간단한 요청 흐름
 
@@ -625,8 +628,8 @@ graph LR
 
   * "브라우저에서 video-editor 업로드 요청을 보낼 때, 네트워크 관점에서 무슨 일이 일어나냐?"
   * "게임서버 WebSocket 연결은 TCP/HTTP랑 어떻게 다르냐?"
-  * **"UDP 게임 서버에서 패킷 손실을 어떻게 처리했냐?"**
-  * **"클라이언트 예측과 서버 리컨실리에이션의 차이는?"**
+  * **"UDP 게임 서버에서 패킷 손실을 어떻게 처리했냐?"** (netcode-core 1.0 경험)
+  * **"클라이언트 예측과 서버 리컨실리에이션의 차이는?"** (netcode-core 1.2 경험)
 
 ---
 
@@ -697,7 +700,7 @@ graph LR
    * 트랙 A: **A2 (골드 하위~중위)**
    * 트랙 B: **B1(OS)**, **B2(네트워크)**
      → 골드 문제 풀면서, 이론 질문 대응력을 같이 쌓는 구간.
-     → **특히 B2에서 UDP/넷코드 부분을 lab1.5/1.6 경험과 연결**
+     → **특히 B2에서 UDP/넷코드 부분을 netcode-core 프로젝트 경험과 연결**
 
 3. **3단계**
 
