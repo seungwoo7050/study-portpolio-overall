@@ -138,17 +138,18 @@
 
 | 구간(대략)     | video-editor(메인)                                                        | Node/Nest 서브                                        | React 서브                                            | C++ 서버 서브                                         | 그 시점에 새로 배우는 튜토리얼                                                           |
 | ---------- | ----------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------- |
-| **0–5**    | 아직 시작 X                                                                 | –                                                   | –                                                   | –                                                  | **T1 JS/TS 코어**                                                             |
-| **5–15**   | **v1.0 기본 인프라 + 업로드** 시작/완료 (파일 업로드, ffmpeg 프로세스 실행)                    | –                                                   | **Milestone 1 (레이아웃/라우팅) 시작**                       | –                                                  | **T2 Node HTTP+ffmpeg**, **T6 React/Vite 기본**                               |
-| **15–25**  | **v1.1 Trim/Split** 구현 (ffmpeg CLI로 잘라내기/분할)                            | **N2.0 Nest Bootstrap** 시작 (CI, Prisma+SQLite)      | M1 마무리                                              | –                                                  | **T3 Nest 기본** (T1, T2 기반에서 바로 씀)                                           |
-| **25–32**  | **v1.2 자막/배속 처리** (필터 몇 개 추가)                                           | **N2.1 Issue CRUD + JWT** (레이어드 아키텍처, Prisma 트랜잭션)  | **M2 Issue Tracker CRUD** (React Query + 폼)         | –                                                  | **T4 DB+Redis+WS의 "DB/CRUD 부분" + T7 React Query/RHF**                       |
-| **32–40**  | **v1.3 WebSocket 진행률 + PostgreSQL 프로젝트 저장 + Redis 캐시** 완성               | **N2.2 팀/RBAC + N2.3 통계/캐시/외부 API** 진행              | **M3 로그인/팀/RBAC UX**                                | –                                                  | **T4 DB+Redis+WS 전체** (WebSocket/Redis 패턴을 여기서 학습→곧바로 v1.3에 적용)             |
-| **40–50**  | 메인 기능 잠깐 유지보수만                                                          | –                                                   | –                                                   | **gameserver-fundamentals: lab1.1 TCP 에코 → lab1.2 턴제 전투**                  | **T10 Modern C++ + TCP 소켓 + 패킷 직렬화**                                        |
-| **50–60**  | –                                                                       | –                                                   | –                                                   | **gameserver-fundamentals: lab1.3 WS 멀티룸 채팅 → lab1.4 Pong 게임 서버** | **T11 Boost.Asio/Beast WebSocket + 게임 루프 기초**                              |
-| **60–68**  | –                                                                       | –                                                   | –                                                   | **netcode-core 프로젝트: 1.0 UDP 신뢰성 → 1.3 넷코드 완성**        | **T11-2 UDP 넷코드 (스냅샷/델타, 예측/리컨실리에이션, 60 TPS)**                             |
-| **68–78**  | **v2.0 Native addon + v2.1 Thumbnail + v2.2 Metadata(FFmpeg C API)** 구현 | **N2.4 Elasticsearch 검색 + N2.5 Kafka 이벤트** 마무리      | **M4 통계 대시보드 + M5 상품 검색 페이지** (Stats/Search API 소비) | C++ 서버는 polishing (Redis 세션, PG 리더보드)               | **T12 Node-API + FFmpeg C API** + **T5 고급 백엔드(ES/Kafka)** + **T8 통계/검색 UI** |
-| **78–93**  | **v2.3 성능 모니터링 + v3.0 프로덕션 배포 (Docker, Reverse proxy, 모니터링)**           | Nest 프로젝트도 Docker/배포/모니터링 최소 적용                     | **M6 테스트 & 접근성 (Playwright, a11y)**                 | 게임 서버도 메트릭/부하 테스트 추가                                | **T13 Docker/배포/모니터링** + **T9 테스트/접근성**                                     |
-| **93–100** | v1~v3 코드 리팩터링, README/설계 문서/데모 영상 정리                                    | Node/Nest/React/C++ 4레포 포트폴리오화                      | 동일                                                  | 동일                                                 | 추가 튜토리얼 없음, 문서화/정리 단계                                                       |
+| **0–3**    | 아직 시작 X                                                                 | –                                                   | –                                                   | –                                                  | **T0 개발 환경 설정** (Node.js, TypeScript, React, C++ CMake, 디버깅)                |
+| **3–8**    | 아직 시작 X                                                                 | –                                                   | –                                                   | –                                                  | **T1 JS/TS 코어**                                                             |
+| **8–18**   | **v1.0 기본 인프라 + 업로드** 시작/완료 (파일 업로드, ffmpeg 프로세스 실행)                    | –                                                   | **Milestone 1 (레이아웃/라우팅) 시작**                       | –                                                  | **T2 Node HTTP+ffmpeg**, **T6 React/Vite 기본**                               |
+| **18–28**  | **v1.1 Trim/Split** 구현 (ffmpeg CLI로 잘라내기/분할)                            | **N2.0 Nest Bootstrap** 시작 (CI, Prisma+SQLite)      | M1 마무리                                              | –                                                  | **T3 Nest 기본** (T0, T1, T2 기반에서 바로 씀)                                       |
+| **28–35**  | **v1.2 자막/배속 처리** (필터 몇 개 추가)                                           | **N2.1 Issue CRUD + JWT** (레이어드 아키텍처, Prisma 트랜잭션)  | **M2 Issue Tracker CRUD** (React Query + 폼)         | –                                                  | **T4 DB+Redis+WS의 "DB/CRUD 부분" + T7 React Query/RHF**                       |
+| **35–43**  | **v1.3 WebSocket 진행률 + PostgreSQL 프로젝트 저장 + Redis 캐시** 완성               | **N2.2 팀/RBAC + N2.3 통계/캐시/외부 API** 진행              | **M3 로그인/팀/RBAC UX**                                | –                                                  | **T4 DB+Redis+WS 전체** (WebSocket/Redis 패턴을 여기서 학습→곧바로 v1.3에 적용)             |
+| **43–53**  | 메인 기능 잠깐 유지보수만                                                          | –                                                   | –                                                   | **gameserver-fundamentals: lab1.1 TCP 에코 → lab1.2 턴제 전투**                  | **T10 Modern C++ + TCP 소켓 + 패킷 직렬화**                                        |
+| **53–63**  | –                                                                       | –                                                   | –                                                   | **gameserver-fundamentals: lab1.3 WS 멀티룸 채팅 → lab1.4 Pong 게임 서버** | **T11 Boost.Asio/Beast WebSocket + 게임 루프 기초**                              |
+| **63–71**  | –                                                                       | –                                                   | –                                                   | **netcode-core 프로젝트: 1.0 UDP 신뢰성 → 1.3 넷코드 완성**        | **T11-2 UDP 넷코드 (스냅샷/델타, 예측/리컨실리에이션, 60 TPS)**                             |
+| **71–81**  | **v2.0 Native addon + v2.1 Thumbnail + v2.2 Metadata(FFmpeg C API)** 구현 | **N2.4 Elasticsearch 검색 + N2.5 Kafka 이벤트** 마무리      | **M4 통계 대시보드 + M5 상품 검색 페이지** (Stats/Search API 소비) | C++ 서버는 polishing (Redis 세션, PG 리더보드)               | **T12 Node-API + FFmpeg C API** + **T5 고급 백엔드(ES/Kafka)** + **T8 통계/검색 UI** |
+| **81–96**  | **v2.3 성능 모니터링 + v3.0 프로덕션 배포 (Docker, Reverse proxy, 모니터링)**           | Nest 프로젝트도 Docker/배포/모니터링 최소 적용                     | **M6 테스트 & 접근성 (Playwright, a11y)**                 | 게임 서버도 메트릭/부하 테스트 추가                                | **T13 Docker/배포/모니터링** + **T9 테스트/접근성**                                     |
+| **96–100** | v1~v3 코드 리팩터링, README/설계 문서/데모 영상 정리                                    | Node/Nest/React/C++ 4레포 포트폴리오화                      | 동일                                                  | 동일                                                 | 추가 튜토리얼 없음, 문서화/정리 단계                                                       |
 
 **포인트**
 
@@ -174,33 +175,34 @@
 ```mermaid
 graph LR
   %% 메인 축: video-editor
-  VE0["0-5: T1 JS/TS"] --> VE1["5-15: v1.0 Infra + 업로드"]
-  VE1 --> VE2["15-25: v1.1 Trim/Split"]
-  VE2 --> VE3["25-32: v1.2 자막/배속"]
-  VE3 --> VE4["32-40: v1.3 WS + PG + Redis"]
-  VE4 --> VE5["68-78: v2.x NativeAddon + Metadata/Thumbnail"]
-  VE5 --> VE6["78-93: v2.3 Perf + v3.0 배포"]
-  VE6 --> VE7["93-100: 리팩터링/문서화"]
+  VE_T0["0-3: T0 환경설정"] --> VE0["3-8: T1 JS/TS"]
+  VE0 --> VE1["8-18: v1.0 Infra + 업로드"]
+  VE1 --> VE2["18-28: v1.1 Trim/Split"]
+  VE2 --> VE3["28-35: v1.2 자막/배속"]
+  VE3 --> VE4["35-43: v1.3 WS + PG + Redis"]
+  VE4 --> VE5["71-81: v2.x NativeAddon + Metadata/Thumbnail"]
+  VE5 --> VE6["81-96: v2.3 Perf + v3.0 배포"]
+  VE6 --> VE7["96-100: 리팩터링/문서화"]
 
   %% React 가지
   VE1 -. 병렬 .- FE1["8-18: T6 + M1 (레이아웃/라우팅)"]
-  VE2 -. 병렬 .- FE2["20-32: T7 + M2 (Issue CRUD)"]
-  VE3 -. 병렬 .- FE3["32-40: M3 (로그인/팀/RBAC)"]
-  VE5 -. 병렬 .- FE4["68-78: T8 + M4/M5 (통계/검색)"]
-  VE6 -. 병렬 .- FE5["78-93: T9 + M6 (테스트/a11y)"]
+  VE2 -. 병렬 .- FE2["23-35: T7 + M2 (Issue CRUD)"]
+  VE3 -. 병렬 .- FE3["35-43: M3 (로그인/팀/RBAC)"]
+  VE5 -. 병렬 .- FE4["71-81: T8 + M4/M5 (통계/검색)"]
+  VE6 -. 병렬 .- FE5["81-96: T9 + M6 (테스트/a11y)"]
 
   %% Nest 가지
-  VE1 -. 병렬 .- N1["18-25: T3 + N2.0 (Nest 부트스트랩/CI)"]
-  VE2 -. 병렬 .- N2["25-32: N2.1 (Issue CRUD/JWT)"]
-  VE3 -. 병렬 .- N3["32-40: N2.2/2.3 (팀/RBAC + 통계/캐시)"]
-  VE5 -. 병렬 .- N4["68-78: T5 + N2.4/2.5 (검색 + Kafka 이벤트)"]
+  VE1 -. 병렬 .- N1["18-28: T3 + N2.0 (Nest 부트스트랩/CI)"]
+  VE2 -. 병렬 .- N2["28-35: N2.1 (Issue CRUD/JWT)"]
+  VE3 -. 병렬 .- N3["35-43: N2.2/2.3 (팀/RBAC + 통계/캐시)"]
+  VE5 -. 병렬 .- N4["71-81: T5 + N2.4/2.5 (검색 + Kafka 이벤트)"]
 
   %% C++ / 게임서버 가지 (gameserver-fundamentals)
-  VE4 -. 병렬 .- C1["40-50: T10 + gameserver-fundamentals lab1.1/1.2 (TCP 에코/턴제)"]
-  C1 --> C2["50-60: T11 + gameserver-fundamentals lab1.3/1.4 (WS 채팅/Pong)"]
+  VE4 -. 병렬 .- C1["43-53: T10 + gameserver-fundamentals lab1.1/1.2 (TCP 에코/턴제)"]
+  C1 --> C2["53-63: T11 + gameserver-fundamentals lab1.3/1.4 (WS 채팅/Pong)"]
 
   %% netcode-core 별도 프로젝트 가지
-  C2 --> C3["60-68: T11-2 + netcode-core 1.0-1.3 (UDP 넷코드 프로젝트)"]
+  C2 --> C3["63-71: T11-2 + netcode-core 1.0-1.3 (UDP 넷코드 프로젝트)"]
   C3 -. 경험 재사용 .- VE5
 
   %% 넷코드 세부 단계 (netcode-core 프로젝트)
