@@ -51,8 +51,10 @@ A0 (준비) → A1 (실버) → A2 (골드) + B1/B2 병행 → A3 (선택 심화
 | [A2](./TUTORIAL/ALGORITHMS-CS/A2-gold-mid-tier.md) | 골드 하위~중위 (골4~골2) | 60-80시간 | 🟡 중급 |
 | [A3](./TUTORIAL/ALGORITHMS-CS/A3-gold-advanced.md) | 골드 상위 선택 심화 | 40-60시간 | 🟠 고급 |
 | [A4](./TUTORIAL/ALGORITHMS-CS/A4-maintenance-routine.md) | 유지 루틴 | 지속적 | 🟡 중급 |
+| [A5](./TUTORIAL/ALGORITHMS-CS/A5-platinum-essentials.md) | **플래티넘 필수** (선택) | 60-80시간 | 🔴 매우 어려움 |
 
-**총 예상 시간**: 140-200시간 (3-5개월, 주 10-15시간 기준)
+**기본 과정 (골드 1~3)**: 140-200시간 (3-5개월, 주 10-15시간 기준)
+**플래티넘 과정 포함**: 200-280시간 (5-7개월)
 
 ### 트랙 B: CS 기초
 
@@ -208,7 +210,7 @@ A0 (준비) → A1 (실버) → A2 (골드) + B1/B2 병행 → A3 (선택 심화
 ## 🔄 다음 단계
 
 ### 알고리즘 심화 (선택)
-- 플래티넘 레벨 도전
+- **플래티넘 레벨 도전**: [A5: 플래티넘 필수](./TUTORIAL/ALGORITHMS-CS/A5-platinum-essentials.md) 완료
 - 대회 참여 (Codeforces, AtCoder)
 - 알고리즘 스터디 참여
 
@@ -238,6 +240,7 @@ A0 (준비) → A1 (실버) → A2 (골드) + B1/B2 병행 → A3 (선택 심화
 - [A2: 골드 하위~중위](./TUTORIAL/ALGORITHMS-CS/A2-gold-mid-tier.md)
 - [A3: 골드 상위 선택 심화](./TUTORIAL/ALGORITHMS-CS/A3-gold-advanced.md)
 - [A4: 유지 루틴](./TUTORIAL/ALGORITHMS-CS/A4-maintenance-routine.md)
+- [A5: 플래티넘 필수](./TUTORIAL/ALGORITHMS-CS/A5-platinum-essentials.md) ⭐ **선택 (플래티넘 도전자용)**
 
 ### 트랙 B: CS 기초
 - [B1: OS 기초](./TUTORIAL/ALGORITHMS-CS/B1-operating-systems.md)
