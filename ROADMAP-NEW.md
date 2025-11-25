@@ -69,43 +69,62 @@
 
 ### C++ / 게임서버 / native-addon / 넷코드
 
+* **T9.5 – C++ 기초 튜토리얼 (T10 사전 준비용, 선택)**
+
+  * **목적**: T01 JS/TS 코어처럼 C++ 기초를 체계적으로 다룸. T10 고급 패턴 전제 지식 채움.
+  * **내용** (T01과 유사한 구조):
+    - **기본 문법**: 변수/타입, 연산자, 제어 구조 (if/loop/switch)
+    - **함수와 모듈**: 함수 정의/호출, 헤더 파일, 네임스페이스
+    - **객체 지향**: 클래스/객체, 생성자/소멸자, 상속/다형성 기초
+    - **메모리 관리**: 포인터/참조, new/delete, 메모리 누수 이해
+    - **STL 기초**: vector, string, map, 알고리즘 (sort, find)
+    - **컴파일/디버그**: g++ 사용, gdb 기초, 에러 처리
+    - **실습 프로젝트**: 간단한 콘솔 앱 (계산기, 파일 I/O)
+  * **시간**: 2-4주 (T01과 비슷), 난이도: 초보자
+  * **리소스**: cppreference.com, "C++ Primer" 챕터 1-10, 온라인 코스 (freeCodeCamp C++)
+  * **완료 조건**: C++로 클래스 기반 프로그램 작성, STL 활용 가능
+
 * **T10 – Modern C++17 + RAII + TCP 소켓 (lab1.1~1.2용)**
 
+  * **사전 요구사항**: C++ 기본 지식 (변수, 함수, 클래스, 포인터). 없으면 아래 기초 문서 먼저 읽기.
+    - 추천: "C++ Primer" 챕터 1-6 또는 온라인 튜토리얼 (cppreference.com, learncpp.com).
+    - 대안: T01 JS/TS 코어 완료 후, 간단한 C++ Hello World부터 시작.
+  * C++17 기초: lambda, auto, structured bindings, range-based for
   * RAII, smart pointer, move, std::thread, mutex
+  * 에러 처리: exceptions vs error codes, noexcept
   * POSIX TCP 소켓 래핑 (accept, send/recv)
   * 단일 프로세스, 스레드 per connection 모델
   * 기본 패킷 직렬화/역직렬화 (바이너리 프로토콜 기초)
+  * 네트워크 기초: IP/포트, 클라이언트-서버 모델
 
 * **T11 – Boost.Asio/Beast WebSocket + 게임 루프 기초 (lab1.3~1.4용)**
 
   * io_context, async_accept/read/write
+  * WebSocket 핸드셰이크와 프로토콜 이해
   * 멀티룸 채팅 서버 구조, 세션/룸 관리
   * WebSocket Pong 서버 구조, **게임 루프 + tick 기본**
   * 고정 타임스텝(fixed timestep) 패턴
   * 기본 상태 동기화 (브로드캐스트)
+  * JSON 프로토콜 설계
+  * 네트워크 시뮬레이션: 간단한 지연/손실 테스트 (netem 기초)
 
 * **T11-2 – UDP 넷코드 + 권위 서버 (netcode-core 프로젝트용)**
 
+  * **난이도**: 중급~고급 (T10/T11 완료 후 추천). 초보자는 T11-2.1부터 시작.
   * **gameserver-fundamentals와 별도 프로젝트**: lab1.1-1.4 완료 후 진행하는 독립 프로젝트
-  * **UDP 소켓 기초**: bind, sendto/recvfrom, non-blocking IO
-  * **신뢰성 계층 구현**: sequence number, ack, ack_bits (32-frame window)
-  * **권위 서버(Authoritative Server) 패턴**: 클라이언트 입력 검증, 서버 시뮬레이션
-  * **스냅샷/델타 동기화**:
+  * **T11-2.1 UDP 기초**: bind, sendto/recvfrom, non-blocking IO
+  * **T11-2.2 신뢰성 레이어**: sequence number, ack, ack_bits (32-frame window)
+  * **T11-2.3 권위 서버 패턴**: 클라이언트 입력 검증, 서버 시뮬레이션
+  * **T11-2.4 스냅샷/델타 동기화**:
     * 키프레임(full snapshot) vs 델타 프레임(diff)
     * 델타 압축으로 대역폭 50% 절감
-  * **클라이언트 예측(Client-side Prediction)**:
+  * **T11-2.5 클라이언트 예측 + 리컨실리에이션**:
     * 입력 즉시 로컬 시뮬레이션
-    * 입력 버퍼 관리
-  * **서버 리컨실리에이션(Server Reconciliation)**:
-    * 서버 응답 수신 시 상태 비교
-    * 불일치 발견 시 재시뮬레이션(resim)
-  * **엔티티 보간(Entity Interpolation)**:
-    * 다른 플레이어 위치의 부드러운 렌더링
-    * 지연 버퍼(lag compensation)
-  * **60 TPS 게임 루프 안정화**:
-    * sleep_for 정밀도 제어
-    * 처리 시간 p99 < 15ms 목표
+    * 서버 응답 수신 시 상태 비교, 재시뮬레이션(resim)
+  * **T11-2.6 엔티티 보간**: 다른 플레이어 위치의 부드러운 렌더링
+  * **60 TPS 게임 루프 안정화**: sleep_for 정밀도 제어, p99 < 15ms
   * **네트워크 시뮬레이션**: netem으로 지연/손실 주입, 안정성 검증
+  * **메트릭 수집**: Prometheus 기반 성능 모니터링
 
 * **T12 – Node-API + FFmpeg C API native addon (video-editor v2.x용)**
 

@@ -1,8 +1,12 @@
 # T11: Boost.Asio + WebSocket + 게임 루프
 
-**난이도**: 🔴 고급
-**예상 소요 시간**: 12~15시간
-**선수 과목**: T10 (Modern C++17 + RAII + TCP)
+> **목표**: Boost.Asio와 WebSocket으로 비동기 게임 서버 구축 및 게임 루프 구현
+> **예상 시간**: 12-15시간 (주 6-8시간)
+> **난이도**: 🔴 고급
+> **선행 요구사항**: [T10: Modern C++](./T10-cpp-raii-tcp.md)
+> **적용 프로젝트**: game-server lab1.3-1.4
+> **퀄리티 보장**: 비동기 서버, WebSocket 통신, 게임 루프
+> **효율성 보장**: Asio 패턴, 실습 채팅/Pong, 디버깅
 
 ---
 
@@ -19,6 +23,22 @@ Boost.Asio와 Boost.Beast를 사용하여 비동기 WebSocket 게임 서버를 �
 
 **프로젝트 연관성**:
 - **game-server (gameserver-fundamentals)**: lab1.3 (WebSocket 멀티룸 채팅), lab1.4 (Pong 게임 서버 + 게임 루프)
+
+---
+
+## 목차
+
+1. [Boost.Asio 기초](#1-boostasio-기초)
+2. [Boost.Beast WebSocket](#2-boostbeast-websocket)
+3. [고정 타임스텝 게임 루프](#3-고정-타임스텝-게임-루프)
+4. [통합: WebSocket 게임 서버](#4-통합-websocket-게임-서버)
+5. [성능 최적화](#5-성능-최적화)
+6. [트러블슈팅](#6-트러블슈팅)
+7. [면접 대비 질문](#7-면접-대비-질문)
+8. [다음 단계](#8-다음-단계)
+9. [공통 오류와 해결](#9-공통-오류와-해결)
+10. [퀴즈 및 다음 단계](#10-퀴즈-및-다음-단계)
+11. [추가 리소스](#11-추가-리소스)
 
 ---
 
@@ -1114,6 +1134,39 @@ while (running_) {
 - CPU 집약적 핸들러 병렬 처리
 - 주의: 핸들러 간 동기화 필요 (strand 사용)
 
+### Q6: Boost.Asio strand의 역할은?
+
+**답변**:
+- 핸들러 직렬화 실행
+- 경쟁 조건 방지
+- 특정 객체에 대한 스레드 안전성 보장
+
+### Q7: WebSocket 서브프로토콜의 용도는?
+
+**답변**:
+- 애플리케이션별 메시지 포맷 협상
+- 예: STOMP, MQTT over WebSocket
+
+### Q8: 게임 서버에서 고정 타임스텝이 중요한 이유는?
+
+**답변**:
+- 클라이언트 예측 정확성
+- 리플레이 시스템 구현 용이
+- 물리 시뮬레이션 일관성
+
+### Q9: Asio의 completion token 패턴은?
+
+**답변**:
+- 콜백 vs 코루틴 vs future 지원
+- 비동기 API의 유연한 인터페이스
+
+### Q10: WebSocket 압축의 장점은?
+
+**답변**:
+- 대역폭 절약
+- 특히 텍스트 메시지에서 효과적
+- per-message-deflate 확장
+
 ---
 
 ## 8. 다음 단계
@@ -1127,3 +1180,99 @@ while (running_) {
 
 **마지막 업데이트**: 2025년 1월
 **다음 튜토리얼**: [T11-2 - UDP 넷코드 →](./T11-2-udp-netcode.md)
+
+---
+
+## 9. 공통 오류와 해결
+
+- **컴파일 에러**: Boost 헤더 → include 경로 확인.
+- **런타임 크래시**: io_context → run() 호출 누락.
+- **연결 실패**: WebSocket 핸드셰이크 → HTTP 업그레이드.
+- **데드락**: 스레드 동기화 → mutex 사용.
+- **메모리 누수**: shared_ptr → RAII 준수.
+
+---
+
+## 10. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. io_context? (비동기 작업 관리)
+2. WebSocket 핸드셰이크? (HTTP 업그레이드)
+3. 고정 타임스텝? (일정한 업데이트 간격)
+4. 브로드캐스팅? (모든 클라이언트 전송)
+5. async_wait? (비동기 타이머)
+6. shared_from_this? (객체 생명주기)
+7. strand? (직렬화 핸들러)
+8. 게임 루프? (업데이트/렌더링 반복)
+9. WebSocket 프레이밍? (메시지 단위)
+10. Boost.Beast? (HTTP/WebSocket 라이브러리)
+
+**완료 조건**: 채팅 서버 실행, Pong 게임 작동.
+
+**다음**: T11-2!
+
+---
+
+## 11. 추가 리소스
+
+### Boost.Asio
+- [Boost Docs](https://www.boost.org/doc/libs/1_84_0/doc/html/boost_asio.html): 공식 문서.
+- [Asio Tutorial](https://think-async.com/Asio/asio-1.28.0/doc/asio/tutorial.html): 튜토리얼.
+- [Asio Examples](https://www.boost.org/doc/libs/1_84_0/doc/html/boost_asio/examples.html): 샘플 코드.
+
+### WebSocket
+- [RFC 6455](https://tools.ietf.org/html/rfc6455): 프로토콜 스펙.
+- [Boost.Beast](https://www.boost.org/doc/libs/1_84_0/libs/beast/doc/html/index.html): 라이브러리.
+- [WebSocket.org](https://websocket.org/): 프로토콜 설명.
+
+### 게임 루프
+- [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/): 고정 타임스텝 가이드.
+- [Game Loop](https://gameprogrammingpatterns.com/game-loop.html): 패턴 설명.
+- [Valve Source Engine](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking): 게임 넷워킹.
+
+### 튜토리얼
+- [WebSocket Server](https://github.com/boostorg/beast/tree/develop/example): Beast 예제.
+- [Asio Chat Server](https://www.boost.org/doc/libs/1_84_0/doc/html/boost_asio/tutorial/tuttimer3.html): 채팅 예제.
+
+### 비디오
+- [CppCon Asio](https://www.youtube.com/results?search_query=cppcon+asio): 컨퍼런스 발표.
+- [Game Dev Netcode](https://www.youtube.com/results?search_query=game+dev+netcode): 넷코드 비디오.
+- [BoostCon](https://www.youtube.com/results?search_query=boostcon): Boost 라이브러리.
+
+### 실습 플랫폼
+- [Compiler Explorer](https://godbolt.org/): C++ 온라인 컴파일러.
+- [Wandbox](https://wandbox.org/): Boost 지원 온라인 IDE.
+
+### 커뮤니티
+- [Stack Overflow Boost](https://stackoverflow.com/questions/tagged/boost): Q&A.
+- [Reddit r/cpp](https://www.reddit.com/r/cpp/): C++ 토론.
+- [Boost Users Mailing List](https://lists.boost.org/mailman/listinfo.cgi/boost-users): 메일링 리스트.
+
+---
+
+**완료 체크리스트**:
+- [ ] Boost.Asio 기초
+  - [ ] io_context와 비동기 작업
+  - [ ] 비동기 TCP 서버 구현
+  - [ ] 멀티스레드 io_context
+- [ ] Boost.Beast WebSocket
+  - [ ] WebSocket 핸드셰이크
+  - [ ] 메시지 송수신
+  - [ ] 세션 관리
+- [ ] 고정 타임스텝 게임 루프
+  - [ ] 게임 루프 개념
+  - [ ] 고정 타임스텝 구현
+  - [ ] 가변 타임스텝 vs 고정 타임스텝
+- [ ] 통합: WebSocket 게임 서버
+  - [ ] 채팅 서버 구현
+  - [ ] Pong 게임 서버
+  - [ ] 브로드캐스팅
+- [ ] 성능 최적화
+  - [ ] strand 사용
+  - [ ] 메모리 관리
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 퀴즈 80% 이상 정답
+
+**학습 시간**: _____ 시간 소요
+**다음 튜토리얼**: _____

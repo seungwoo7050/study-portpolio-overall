@@ -1,10 +1,10 @@
 # T0: 개발 환경 설정 (macOS)
 
-> **목표**: 포트폴리오 프로젝트 개발에 필요한 도구 설치 및 사용법 완전 정복
-> **예상 시간**: 3-5시간
-> **난이도**: 🟢 기초
-> **선행 요구사항**: 없음 (macOS 설치만 되어 있으면 됨)
-> **적용 대상**: 전체 프로젝트 (video-editor, backend-nestjs, e-commerce, game-server)
+> **목표**: 포트폴리오 프로젝트 개발에 필요한 도구 설치 및 사용법 완전 정복  
+> **예상 시간**: 3-5시간  
+> **난이도**: 🟢 기초  
+> **선행 요구사항**: 없음 (macOS 설치만 되어 있으면 됨)  
+> **적용 대상**: 전체 프로젝트 (video-editor, backend-nestjs, e-commerce, game-server)  
 
 ---
 
@@ -146,6 +146,21 @@ pnpm dev
 
 ### 2.3 TypeScript 설치 및 사용
 
+**TypeScript**는 JavaScript에 **정적 타입**을 추가한 프로그래밍 언어입니다.
+
+**TypeScript의 장점**:
+- **타입 안전성**: 런타임 오류를 컴파일 타임에 잡을 수 있음
+- **개발 경험 향상**: 자동 완성, 리팩토링, IDE 지원 강화
+- **대규모 프로젝트 적합**: 코드 유지보수성과 가독성 향상
+- **JavaScript 호환**: 모든 JavaScript 코드를 TypeScript로 사용할 수 있음
+
+**기본 타입 개념**:
+- `string`: 문자열 (`"hello"`)
+- `number`: 숫자 (`42`, `3.14`)
+- `boolean`: 참/거짓 (`true`, `false`)
+- `any`: 모든 타입 (사용 자제)
+- `unknown`: 알 수 없는 타입 (안전한 any)
+
 ```bash
 # TypeScript 전역 설치
 npm install -g typescript
@@ -168,11 +183,22 @@ mkdir hello-ts && cd hello-ts
 npm init -y
 
 # TypeScript 로컬 설치
+# --save-dev: 개발 의존성으로 설치
 npm install --save-dev typescript @types/node
 
 # tsconfig.json 생성
 npx tsc --init
 ```
+
+- `npm` (Node Package Manager): Node.js 패키지를 설치, 관리, 업데이트하는 도구입니다. 주로 `npm install` 같은 명령어로 패키지를 로컬 프로젝트나 글로벌로 설치하고, 의존성을 관리합니다. 패키지를 영구적으로 설치하는 데 초점이 맞춰져 있습니다.
+
+- `npx` (npm package runner): npm에 포함된 도구로, 로컬에 설치된 패키지를 실행하거나, 설치되지 않은 패키지를 임시로 다운로드하여 실행할 수 있게 해줍니다. 예를 들어, `npx create-react-app`처럼 패키지를 설치하지 않고 바로 실행할 수 있어 편리합니다. npm이 "설치" 중심이라면 npx는 "실행" 중심입니다.
+
+- `@types/node`: Node.js의 TypeScript 타입 정의 패키지입니다. JavaScript로 된 Node.js API에 TypeScript 타입 정보를 추가하여, TypeScript 코드에서 Node.js 함수(예: fs.readFile)를 사용할 때 타입 체크와 자동 완성을 제공합니다. 별도로 설치해야 하며, TypeScript 프로젝트에서 필수적입니다.
+
+- `package.json`: Node.js 프로젝트의 메타데이터 파일입니다. 프로젝트 이름, 버전, 의존성(dependencies), 개발 의존성(devDependencies), 스크립트(commands)를 정의합니다. npm이 이 파일을 읽어 패키지를 설치하거나 스크립트를 실행합니다. 프로젝트의 전체 설정과 관리를 담당합니다.
+
+- `tsconfig.json`: TypeScript 컴파일러의 설정 파일입니다. TypeScript 코드가 어떻게 컴파일될지(예: 대상 JavaScript 버전, 모듈 시스템, 출력 디렉토리)를 지정합니다. TypeScript 프로젝트에서만 사용되며, 컴파일 옵션을 제어합니다. package.json이 프로젝트 관리라면 tsconfig.json은 TypeScript 빌드 설정에 특화되어 있습니다.
 
 **tsconfig.json** 기본 설정:
 
@@ -196,18 +222,38 @@ npx tsc --init
 **src/index.ts** 작성:
 
 ```typescript
+// TypeScript 인터페이스로 타입 정의
 interface User {
   name: string;
   age: number;
+  email?: string; // 선택적 속성 (있어도 되고 없어도 됨)
 }
 
+// 타입이 명확한 함수
 function greet(user: User): string {
+  // TypeScript는 타입을 추론하여 자동 완성 제공
   return `Hello, ${user.name}! You are ${user.age} years old.`;
 }
 
-const user: User = { name: "Alice", age: 25 };
+// 타입 안전성: 잘못된 타입 사용 시 컴파일 오류
+const user: User = { 
+  name: "Alice", 
+  age: 25,
+  email: "alice@example.com"
+};
+
 console.log(greet(user));
+
+// 타입 에러 예시 (주석 처리됨 - 실제로는 컴파일되지 않음)
+// console.log(greet("Alice")); // Error: string은 User 타입이 아님
+// console.log(greet({ name: "Bob", age: "25" })); // Error: age는 number여야 함
 ```
+
+**TypeScript 코드의 장점**:
+- **인터페이스**: 객체의 구조를 명확히 정의
+- **타입 체크**: 잘못된 타입 사용 시 즉시 오류 발견
+- **자동 완성**: IDE가 타입 정보를 활용하여 제안
+- **리팩토링 안전**: 코드 변경 시 타입 오류로 실수 방지
 
 **컴파일 및 실행**:
 
@@ -225,19 +271,99 @@ npx ts-node src/index.ts
 
 ### 2.5 디버깅
 
-**console.log 디버깅**:
+디버깅은 프로그래밍의 핵심 기술 중 하나입니다. 버그를 찾고 수정하는 과정에서 디버깅 기술을 잘 활용하면 개발 시간을 크게 단축할 수 있습니다. 이 섹션에서는 JavaScript/TypeScript 환경에서의 기본적인 디버깅 방법을 배웁니다.
+
+#### 디버깅의 중요성
+
+- **시간 절약**: 체계적인 디버깅으로 버그 원인을 빠르게 찾을 수 있음
+- **코드 품질 향상**: 디버깅 과정에서 코드 구조를 더 잘 이해하게 됨
+- **학습 도구**: 실행 흐름을 따라가며 언어와 프레임워크를 깊이 이해
+
+#### 1. console.log 디버깅
+
+가장 기본적이고 간단한 디버깅 방법입니다.
+
+**장점**:
+- 빠르게 적용 가능
+- 코드 수정 없이 즉시 사용
+- 프로덕션에서도 일부 활용 가능
+
+**단점**:
+- 로그를 추가/제거하는 작업이 번거로움
+- 대량의 로그가 성능 저하를 일으킬 수 있음
+- 복잡한 데이터 구조 파악이 어려움
+
+**실무 팁**:
+- `console.log` 대신 `console.debug`, `console.warn`, `console.error`를 상황에 맞게 사용
+- 객체를 로깅할 때는 `JSON.stringify`로 가독성 높이기
+- 프로덕션에서는 `console.log`를 제거하거나 조건부로 실행
 
 ```typescript
 // src/debug-example.ts
-function calculate(a: number, b: number): number {
-  console.log('Input values:', { a, b });
-  const result = a + b;
-  console.log('Result:', result);
-  return result;
+function calculateGrade(score: number): string {
+  // 입력 값 확인
+  console.log('점수 확인:', score);
+
+  // 점수 범위 체크
+  if (score < 0 || score > 100) {
+    console.error('잘못된 점수 범위:', score);
+    return '오류: 점수는 0-100 사이여야 합니다';
+  }
+
+  // 등급 계산
+  let grade: string;
+  if (score >= 90) {
+    grade = 'A';
+  } else if (score >= 80) {
+    grade = 'B';
+  } else if (score >= 70) {
+    grade = 'C';
+  } else if (score >= 60) {
+    grade = 'D';
+  } else {
+    grade = 'F';
+  }
+
+  console.log('계산된 등급:', grade);
+  return `점수 ${score}점은 ${grade}등급입니다`;
 }
 
-calculate(5, 10);
+// 테스트 실행
+console.log('=== 성적 계산 테스트 ===');
+console.log(calculateGrade(95));  // A등급 예상
+console.log(calculateGrade(85));  // B등급 예상
+console.log(calculateGrade(75));  // C등급 예상
+console.log(calculateGrade(150)); // 오류 예상
 ```
+
+**실행 결과**:
+```bash
+npx ts-node src/debug-example.ts
+# === 성적 계산 테스트 ===
+# 점수 확인: 95
+# 계산된 등급: A
+# 점수 95점은 A등급입니다
+# 점수 확인: 85
+# 계산된 등급: B
+# 점수 85점은 B등급입니다
+# 점수 확인: 75
+# 계산된 등급: C
+# 점수 75점은 C등급입니다
+# 점수 확인: 150
+# 잘못된 점수 범위: 150
+# 오류: 점수는 0-100 사이여야 합니다
+```
+
+#### 2. VS Code 디버거
+
+VS Code의 내장 디버거는 강력한 디버깅 환경을 제공합니다.
+
+**장점**:
+- 브레이크포인트로 실행 중단
+- 변수 값 실시간 확인
+- 호출 스택(Call Stack) 추적
+- 단계별 실행 (Step Over/Into/Out)
+- 변수 값 수정 가능
 
 **VS Code 디버거 설정** (`.vscode/launch.json`):
 
@@ -253,20 +379,133 @@ calculate(5, 10);
       "args": ["${workspaceFolder}/src/index.ts"],
       "sourceMaps": true,
       "cwd": "${workspaceFolder}",
-      "protocol": "inspector"
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Compiled JS",
+      "program": "${workspaceFolder}/dist/index.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
     }
   ]
 }
 ```
 
 **사용 방법**:
-1. VS Code에서 브레이크포인트 설정 (줄번호 왼쪽 클릭)
-2. F5 키 또는 Debug 메뉴에서 "Start Debugging"
-3. 변수 값 확인, Step Over (F10), Step Into (F11)
+1. **브레이크포인트 설정**: 줄번호 왼쪽을 클릭하여 빨간 점 표시
+2. **디버깅 시작**: F5 키 또는 Debug 메뉴 → "Start Debugging"
+3. **실행 제어**:
+   - **Continue (F5)**: 다음 브레이크포인트까지 실행
+   - **Step Over (F10)**: 다음 줄 실행 (함수 안으로 들어가지 않음)
+   - **Step Into (F11)**: 함수 안으로 들어가서 실행
+   - **Step Out (Shift+F11)**: 현재 함수에서 나와서 실행
+4. **변수 확인**: Variables 패널에서 값 확인
+5. **호출 스택**: Call Stack 패널에서 함수 호출 경로 확인
+
+**고급 브레이크포인트**:
+- **조건부 브레이크포인트**: 특정 조건에서만 멈춤 (브레이크포인트 우클릭 → "Edit Condition")
+- **로그포인트**: 실행을 멈추지 않고 로그 출력 (브레이크포인트 우클릭 → "Edit Log Message")
+
+```typescript
+// src/debug-advanced.ts
+interface Product {
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+function calculateTotal(products: Product[]): number {
+  console.log('장바구니 계산 시작');
+
+  let total = 0;
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i];
+    console.log(`상품 ${i + 1}: ${product.name}, 가격: ${product.price}, 수량: ${product.quantity}`);
+
+    const itemTotal = product.price * product.quantity;
+    console.log(`  소계: ${itemTotal}`);
+
+    total = total + itemTotal;
+    console.log(`  현재 총계: ${total}`);
+  }
+
+  console.log(`최종 총계: ${total}`);
+  return total;
+}
+
+function main() {
+  const cart: Product[] = [
+    { name: '사과', price: 1000, quantity: 3 },
+    { name: '바나나', price: 500, quantity: 2 },
+    { name: '오렌지', price: 800, quantity: 1 }
+  ];
+
+  console.log('=== 장바구니 계산 ===');
+  const totalPrice = calculateTotal(cart);
+  console.log(`\n총 결제 금액: ${totalPrice}원`);
+}
+
+main();
+```
+
+**디버깅 시나리오**:
+1. `calculateTotal` 함수의 for문 시작 부분에 브레이크포인트 설정
+2. F5로 디버깅 시작
+3. 각 상품을 하나씩 처리하며 변수 값(`product`, `itemTotal`, `total`) 확인
+4. Variables 패널에서 배열과 객체의 값 추적
+5. Step Over로 한 줄씩 실행하며 계산 과정 관찰
+
+#### 3. 디버깅 모범 사례
+
+**1. 체계적인 접근**:
+- 버그 재현 방법 찾기
+- 가능한 원인 나열
+- 하나씩 테스트하며 범위 좁히기
+
+**2. 로깅 전략**:
+```typescript
+// 환경별 로깅 레벨 설정
+const LOG_LEVEL = process.env.NODE_ENV === 'development' ? 'debug' : 'warn';
+
+function log(level: string, message: string, data?: any) {
+  if (level === 'debug' && LOG_LEVEL !== 'debug') return;
+
+  const timestamp = new Date().toISOString();
+  console[level](`[${timestamp}] ${message}`, data || '');
+}
+
+// 사용 예
+log('debug', 'Processing user data', { userId: 123 });
+log('error', 'Database connection failed', { error: err.message });
+```
+
+**3. 단위 테스트와 통합**:
+- 버그 발견 시 단위 테스트 작성
+- 회귀 방지
+
+**실무에서 자주 발생하는 버그 패턴**:
+- **null/undefined 참조**: `?.` 옵셔널 체이닝 사용
+- **타입 오류**: TypeScript strict 모드 활용
 
 ---
 
 ## 3. React/Vite 프로젝트
+
+**React**는 사용자 인터페이스를 구축하기 위한 JavaScript 라이브러리입니다. **컴포넌트 기반**으로 재사용 가능한 UI를 만들 수 있습니다.
+
+**React의 핵심 개념**:
+- **컴포넌트**: UI의 독립적인 부분 (버튼, 폼, 페이지 등)
+- **JSX**: JavaScript 안에 HTML-like 문법 (`<div>Hello</div>`)
+- **Props**: 부모 컴포넌트에서 자식 컴포넌트로 전달하는 데이터
+- **State**: 컴포넌트 내부의 동적인 데이터
+- **Hooks**: 함수 컴포넌트에서 상태와 생명주기를 관리
+
+**Vite**는 빠른 개발 서버와 빌드 도구입니다.
+- **장점**: 매우 빠른 핫 리로드, 최신 ES 모듈 지원, TypeScript 기본 지원
 
 ### 3.1 Vite 프로젝트 생성
 
@@ -319,30 +558,48 @@ npm run preview
 
 ### 3.4 컴포넌트 작성 예시
 
-**src/components/Counter.tsx**:
+**React 컴포넌트 이해**:
+- **JSX**: JavaScript 안에 HTML을 작성하는 문법
+- **Props**: 부모 컴포넌트에서 전달받는 데이터 (읽기 전용)
+- **State**: 컴포넌트 내부에서 관리하는 데이터 (변경 가능)
+- **Hooks**: `useState` 같은 함수로 상태 관리
+
+**src/components/Counter.tsx** (상태를 가진 컴포넌트):
 
 ```tsx
 import { useState } from 'react';
 
+// TypeScript로 props 타입 정의
 interface CounterProps {
-  initialCount?: number;
+  initialCount?: number; // 선택적 prop
+  title?: string;
 }
 
-export function Counter({ initialCount = 0 }: CounterProps) {
-  const [count, setCount] = useState(initialCount);
+// 함수 컴포넌트 (권장 방식)
+export function Counter({ initialCount = 0, title = "카운터" }: CounterProps) {
+  // useState Hook: 상태 변수와 setter 함수 반환
+  const [count, setCount] = useState<number>(initialCount);
+
+  // 이벤트 핸들러
+  const increment = () => setCount(count + 1);
+  const decrement = () => setCount(count - 1);
+  const reset = () => setCount(initialCount);
 
   return (
-    <div>
-      <h2>Count: {count}</h2>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-      <button onClick={() => setCount(count - 1)}>Decrement</button>
-      <button onClick={() => setCount(0)}>Reset</button>
+    <div style={{ border: '1px solid #ccc', padding: '20px', margin: '10px' }}>
+      <h2>{title}</h2>
+      <p>현재 값: <strong>{count}</strong></p>
+      
+      {/* JSX에서 이벤트 연결 */}
+      <button onClick={increment}>+1</button>
+      <button onClick={decrement}>-1</button>
+      <button onClick={reset}>초기화</button>
     </div>
   );
 }
 ```
 
-**src/App.tsx**에서 사용:
+**src/App.tsx**에서 사용 (props 전달):
 
 ```tsx
 import { Counter } from './components/Counter';
@@ -350,14 +607,25 @@ import { Counter } from './components/Counter';
 function App() {
   return (
     <div className="App">
-      <h1>My React App</h1>
-      <Counter initialCount={10} />
+      <h1>React 컴포넌트 예제</h1>
+      
+      {/* props로 초기 값 전달 */}
+      <Counter initialCount={10} title="메인 카운터" />
+      <Counter initialCount={0} title="서브 카운터" />
+      
+      {/* 기본 props 사용 */}
+      <Counter />
     </div>
   );
 }
 
 export default App;
 ```
+
+**React의 특징**:
+- **선언적**: 무엇을 렌더링할지 명시하면 React가 어떻게 할지 결정
+- **컴포넌트 기반**: 재사용 가능한 UI 조각으로 구성
+- **단방향 데이터 흐름**: props는 위에서 아래로, state는 내부에서 관리
 
 ### 3.5 React DevTools
 
@@ -375,6 +643,24 @@ export default App;
 ---
 
 ## 4. Node.js/NestJS 프로젝트
+
+**Node.js**는 브라우저 밖에서 JavaScript를 실행할 수 있게 해주는 런타임 환경입니다.
+
+**Node.js의 역할**:
+- **서버 사이드 JavaScript**: 백엔드 API, 웹 서버 구축
+- **npm 생태계**: 방대한 패키지 라이브러리 활용
+- **비동기 처리**: 이벤트 기반 아키텍처로 효율적인 I/O 처리
+- **풀스택 개발**: 프론트엔드와 동일한 언어로 백엔드 개발
+
+**웹 개발 기본 개념**:
+- **클라이언트**: 브라우저 (프론트엔드)
+- **서버**: 데이터를 처리하고 응답하는 컴퓨터 (백엔드)
+- **API**: 클라이언트와 서버가 통신하는 인터페이스
+- **HTTP**: 웹에서 데이터를 주고받는 프로토콜
+
+**Express vs NestJS**:
+- **Express**: 간단하고 유연한 웹 프레임워크
+- **NestJS**: 구조화된 아키텍처, TypeScript 최적화, 기업용
 
 ### 4.1 간단한 Express 서버
 
@@ -399,21 +685,61 @@ import express, { Request, Response } from 'express';
 const app = express();
 const PORT = 3000;
 
+// 미들웨어: JSON 요청 파싱
 app.use(express.json());
 
+// GET / - 기본 라우트
 app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Hello from Express!' });
+  res.json({ 
+    message: 'Hello from Express!', 
+    timestamp: new Date().toISOString() 
+  });
 });
 
+// GET /users/:id - 경로 파라미터 사용
 app.get('/users/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  res.json({ id, name: 'Alice', email: 'alice@example.com' });
+  const { id } = req.params; // URL에서 파라미터 추출
+  
+  // 실제로는 데이터베이스에서 조회
+  const user = {
+    id: parseInt(id),
+    name: 'Alice',
+    email: 'alice@example.com'
+  };
+  
+  res.json(user);
+});
+
+// POST /users - 새 사용자 생성
+app.post('/users', (req: Request, res: Response) => {
+  const { name, email } = req.body; // 요청 본문에서 데이터 추출
+  
+  // 실제로는 데이터베이스에 저장
+  const newUser = {
+    id: Date.now(), // 간단한 ID 생성
+    name,
+    email,
+    createdAt: new Date().toISOString()
+  };
+  
+  res.status(201).json(newUser); // 201: Created
+});
+
+// 404 핸들러
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Not Found' });
 });
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 ```
+
+**Express 서버 이해**:
+- **라우팅**: URL 경로에 따라 다른 핸들러 실행
+- **미들웨어**: 요청/응답을 처리하는 중간 함수
+- **HTTP 메소드**: GET(조회), POST(생성), PUT(수정), DELETE(삭제)
+- **상태 코드**: 200(성공), 201(생성됨), 404(찾을 수 없음) 등
 
 **package.json** 스크립트:
 
@@ -427,18 +753,23 @@ app.listen(PORT, () => {
 }
 ```
 
-**실행**:
+**실행 및 테스트**:
 
 ```bash
 # 개발 모드 (자동 재시작)
 npm run dev
 
-# 다른 터미널에서 테스트
+# 다른 터미널에서 API 테스트
 curl http://localhost:3000
-# 출력: {"message":"Hello from Express!"}
+# {"message":"Hello from Express!","timestamp":"2025-01-25T..."}
 
 curl http://localhost:3000/users/123
-# 출력: {"id":"123","name":"Alice","email":"alice@example.com"}
+# {"id":123,"name":"Alice","email":"alice@example.com"}
+
+curl -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bob","email":"bob@example.com"}'
+# {"id":1737780000000,"name":"Bob","email":"bob@example.com","createdAt":"2025-01-25T..."}
 ```
 
 ### 4.2 NestJS 프로젝트

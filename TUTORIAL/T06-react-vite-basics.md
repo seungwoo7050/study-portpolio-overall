@@ -1,8 +1,12 @@
 # T06: React 18 + Vite 기초
 
-**난이도**: 🟡 중급
-**예상 소요 시간**: 5~6시간
-**선수 과목**: T01 (JavaScript/TypeScript 핵심)
+> **목표**: React 18과 Vite를 사용한 모던 프론트엔드 개발 기초 완전 정복
+> **예상 시간**: 5-6시간 (주 3시간)
+> **난이도**: 🟡 중급
+> **선행 요구사항**: [T01: JS/TS 코어](./T01-js-ts-core.md)
+> **적용 프로젝트**: video-editor, e-commerce
+> **퀄리티 보장**: 실행 앱, 타입 안전, 모던 패턴
+> **효율성 보장**: 컴포넌트 중심, 실습 라우팅, Hooks 마스터
 
 ---
 
@@ -20,6 +24,26 @@ React 18과 Vite를 사용한 모던 프론트엔드 개발의 기초를 학습�
 **프로젝트 연관성**:
 - **video-editor**: v1.3 (React UI 구축)
 - **e-commerce**: 프론트엔드 전체
+
+---
+
+## 목차
+
+1. [React 기초](#1-react-기초)
+2. [React Hooks](#2-react-hooks)
+3. [Vite 설정 및 최적화](#3-vite-설정-및-최적화)
+4. [React Router](#4-react-router)
+5. [Context API로 전역 상태 관리](#5-context-api로-전역-상태-관리)
+6. [컴포넌트 패턴](#6-컴포넌트-패턴)
+7. [성능 최적화](#7-성능-최적화)
+8. [Best Practices](#8-best-practices)
+9. [실전 프로젝트: Todo App](#9-실전-프로젝트-todo-app)
+10. [트러블슈팅](#10-트러블슈팅)
+11. [면접 대비 질문](#11-면접-대비-질문)
+12. [다음 단계](#12-다음-단계)
+13. [공통 오류와 해결](#13-공통-오류와-해결)
+14. [퀴즈 및 다음 단계](#14-퀴즈-및-다음-단계)
+15. [추가 리소스](#15-추가-리소스)
 
 ---
 
@@ -1604,6 +1628,26 @@ function UncontrolledInput() {
 {items.map(item => <Item key={item.id} {...item} />)}
 ```
 
+### Q6: React 18의 새로운 기능은?
+
+**답변**: Concurrent Features, Automatic Batching, Suspense on Server, startTransition API 등. 특히 Concurrent Rendering으로 UX 향상.
+
+### Q7: Vite의 장점은?
+
+**답변**: ESModule 기반으로 빠른 개발 서버, HMR, 빌드 속도 향상. Webpack보다 설정이 간단하고 빠름.
+
+### Q8: Context API vs Redux?
+
+**답변**: Context는 간단한 전역 상태, Redux는 복잡한 상태 관리. Redux는 미들웨어, devtools 지원.
+
+### Q9: React Router의 종류는?
+
+**답변**: BrowserRouter (HTML5 history), HashRouter (# 사용), MemoryRouter (테스트용).
+
+### Q10: Hooks 규칙은?
+
+**답변**: 최상위에서만 호출, 조건문/반복문 안에서는 사용 금지. ESLint 플러그인으로 검사 가능.
+
 ---
 
 ## 12. 다음 단계
@@ -1622,3 +1666,111 @@ function UncontrolledInput() {
 
 **마지막 업데이트**: 2025년 1월
 **다음 튜토리얼**: [T07 - React Query + Forms →](./T07-react-query-forms.md)
+
+---
+
+## 13. 공통 오류와 해결
+
+- **렌더링 무한 루프**: useEffect 의존성 → deps 배열 확인.
+- **Props 타입 에러**: TypeScript → 인터페이스 정의.
+- **라우팅 실패**: path 불일치 → exact 사용.
+- **Context 업데이트**: stale closure → useCallback.
+- **빌드 에러**: Vite 설정 → config.ts 확인.
+
+---
+
+## 14. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. JSX? (JavaScript XML)
+2. useState? (상태 관리 Hook)
+3. React Router? (SPA 라우팅)
+4. Context API? (전역 상태)
+5. useEffect? (사이드 이펙트 Hook)
+6. Props vs State? (읽기 전용 vs 가변)
+7. Key prop? (리스트 아이템 식별)
+8. Vite의 장점? (빠른 개발 서버)
+9. 조건부 렌더링? (삼항 연산자, &&)
+10. 컴포넌트 최적화? (React.memo, useMemo)
+
+**완료 조건**: Todo 앱 실행, 라우팅 작동.
+
+**다음**: T07!
+
+---
+
+## 15. 추가 리소스
+
+### React
+- [React Docs](https://react.dev/): 공식 가이드.
+- [React Hooks](https://react.dev/reference/react): API 레퍼런스.
+- [React TypeScript](https://react-typescript-cheatsheet.netlify.app/): TS 가이드.
+
+### Vite
+- [Vite Guide](https://vitejs.dev/guide/): 설정 튜토리얼.
+- [Vite Config](https://vitejs.dev/config/): 옵션 설명.
+- [Vite Plugins](https://vitejs.dev/plugins/): 플러그인 목록.
+
+### 라우팅
+- [React Router Docs](https://reactrouter.com/en/main): 라우터 가이드.
+- [Context API](https://react.dev/reference/react/useContext): 상태 관리.
+- [Redux Toolkit](https://redux-toolkit.js.org/): 고급 상태 관리.
+
+### 튜토리얼
+- [Fullstack React](https://www.fullstackreact.com/): 심화 코스.
+- [React Patterns](https://reactpatterns.com/): 패턴 모음.
+- [Epic React](https://epicreact.dev/): 고급 코스.
+
+### 비디오
+- [Fireship React](https://www.youtube.com/watch?v=Tn6-PIqc4UM): 빠른 개요.
+- [Traversy Media React](https://www.youtube.com/c/TraversyMedia): 시리즈.
+- [Academind React](https://www.youtube.com/c/Academind): 심화 튜토리얼.
+
+### 실습 플랫폼
+- [CodeSandbox](https://codesandbox.io/): 온라인 에디터.
+- [StackBlitz](https://stackblitz.com/): React 실습.
+- [React Playground](https://playcode.io/react): 빠른 테스트.
+
+### 커뮤니티
+- [Reddit r/reactjs](https://www.reddit.com/r/reactjs/): 커뮤니티.
+- [React Discord](https://discord.gg/reactiflux): 채팅.
+
+---
+
+**튜토리얼 완료 체크리스트**:
+- [ ] React 기초 이해
+  - [ ] JSX 문법과 컴포넌트
+  - [ ] Props와 State 개념
+  - [ ] 조건부 렌더링과 리스트
+- [ ] React Hooks 마스터
+  - [ ] useState로 상태 관리
+  - [ ] useEffect로 사이드 이펙트
+  - [ ] useRef와 다른 Hooks
+- [ ] Vite 설정 및 최적화
+  - [ ] 프로젝트 생성
+  - [ ] 개발 서버 실행
+  - [ ] 빌드 설정
+- [ ] React Router 구현
+  - [ ] 라우팅 설정
+  - [ ] 네비게이션
+  - [ ] 동적 라우팅
+- [ ] Context API로 상태 관리
+  - [ ] Context 생성
+  - [ ] Provider 설정
+  - [ ] useContext 활용
+- [ ] 컴포넌트 패턴 적용
+  - [ ] 재사용 가능한 컴포넌트
+  - [ ] Props drilling 해결
+- [ ] 성능 최적화
+  - [ ] React.memo 사용
+  - [ ] useMemo/useCallback
+- [ ] Best Practices 준수
+  - [ ] 코드 구조화
+  - [ ] 타입 안전성
+- [ ] 실전 프로젝트: Todo App
+  - [ ] CRUD 기능 구현
+  - [ ] 라우팅 적용
+- [ ] 퀴즈 80% 이상 정답
+
+**학습 시간**: _____ 시간 소요
+**다음 튜토리얼**: _____

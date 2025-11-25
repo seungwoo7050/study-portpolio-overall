@@ -1,9 +1,11 @@
 # T01: JavaScript/TypeScript 코어
 
 > **목표**: 4개 포트폴리오 프로젝트에서 사용하는 JS/TS 핵심 개념 완전 정복
-> **예상 시간**: 8-12시간
+> **예상 시간**: 8-12시간 (주 4-6시간)
 > **난이도**: 🟢 기초
 > **선행 요구사항**: 프로그래밍 기본 지식 (변수, 조건문, 반복문)
+> **퀄리티 보장**: 실행 가능한 코드, 타입 안전, 실습 중심
+> **효율성 보장**: 필수 개념만, 퀴즈 복습, 프로젝트 적용
 
 ---
 
@@ -16,6 +18,9 @@
 5. [모듈 시스템](#5-모듈-시스템)
 6. [트러블슈팅](#6-트러블슈팅)
 7. [프로젝트 적용](#7-프로젝트-적용)
+8. [공통 오류와 해결](#8-공통-오류와-해결)
+9. [퀴즈 및 다음 단계](#9-퀴즈-및-다음-단계)
+10. [추가 리소스](#10-추가-리소스)
 
 ---
 
@@ -24,20 +29,25 @@
 ### 1.1 const/let과 블록 스코프
 
 **개념**:
-- `var`는 함수 스코프, `const`/`let`은 블록 스코프
+- `var`는 함수 스코프 (function scope), `const`/`let`은 블록 스코프 (block scope)
 - `const`는 재할당 불가 (단, 객체/배열 내부는 변경 가능)
 - `let`은 재할당 가능
 
+**왜 중요한가?**
+- 클로저(closure) 문제 해결
+- 예측 가능한 변수 범위
+- 실수로 인한 버그 방지
+
 ```javascript
-// ❌ var의 문제점
+// ❌ var의 문제점: 함수 스코프
 function varProblem() {
   for (var i = 0; i < 3; i++) {
-    setTimeout(() => console.log(i), 100);
+    setTimeout(() => console.log(i), 100); // 클로저 문제
   }
 }
-varProblem(); // 출력: 3, 3, 3 (예상과 다름!)
+varProblem(); // 출력: 3, 3, 3 (예상: 0, 1, 2)
 
-// ✅ let으로 해결
+// ✅ let으로 해결: 블록 스코프
 function letSolution() {
   for (let i = 0; i < 3; i++) {
     setTimeout(() => console.log(i), 100);
@@ -46,7 +56,7 @@ function letSolution() {
 letSolution(); // 출력: 0, 1, 2
 
 // const는 재할당 불가
-const config = { port: 3000 };
+const config = { port: 3000, host: 'localhost' };
 // config = {}; // ❌ TypeError: Assignment to constant variable
 config.port = 4000; // ✅ 객체 내부는 변경 가능
 
@@ -56,12 +66,35 @@ let currentPage = 1;
 
 users.push({ id: 1, name: 'Alice' }); // ✅
 currentPage++; // ✅
+
+// 실전: React 컴포넌트에서
+function UserList({ users }) {
+  const [selectedUser, setSelectedUser] = useState(null); // ✅ const
+  let filteredUsers = users; // ✅ let (필터링 시 변경)
+
+  if (searchTerm) {
+    filteredUsers = users.filter(user => // ✅ 재할당
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  return (
+    <div>
+      {filteredUsers.map(user => (
+        <div key={user.id} onClick={() => setSelectedUser(user)}>
+          {user.name}
+        </div>
+      ))}
+    </div>
+  );
+}
 ```
 
 **실전 가이드**:
-- 기본적으로 `const` 사용
+- 기본적으로 `const` 사용 (재할당 방지)
 - 재할당이 필요한 경우에만 `let` 사용
-- `var`는 절대 사용 금지
+- `var`는 절대 사용 금지 (예측 불가능한 동작)
+- 함수 매개변수는 기본적으로 `const`처럼 취급
 
 ---
 
@@ -299,9 +332,15 @@ const text = highlight`Learn ${keyword} in depth!`;
 
 ### 2.1 Promise 기본
 
-**개념**:
+**Promise란?**
 - 비동기 작업의 결과를 나타내는 객체
-- 3가지 상태: pending, fulfilled, rejected
+- 3가지 상태: `pending`(대기) → `fulfilled`(성공) 또는 `rejected`(실패)
+- `.then()`, `.catch()`, `.finally()`로 결과 처리
+
+**왜 Promise가 필요한가?**
+- 콜백 지옥(callback hell) 해결
+- 비동기 코드의 가독성 향상
+- 에러 처리 표준화
 
 ```javascript
 // Promise 생성
@@ -313,7 +352,7 @@ function delay(ms) {
   });
 }
 
-// Promise 사용
+// 기본 사용
 delay(1000)
   .then(result => {
     console.log(result); // 'Waited for 1000ms'
@@ -326,33 +365,15 @@ delay(1000)
     console.error('Error:', error);
   });
 
-// 실전 패턴: API 요청
-function fetchUser(id) {
-  return fetch(`https://api.example.com/users/${id}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => data)
-    .catch(error => {
-      console.error('Fetch error:', error);
-      throw error;
-    });
-}
-
-// Promise.all: 병렬 실행
+// Promise.all: 모든 Promise가 완료될 때까지 기다림
 Promise.all([
-  fetchUser(1),
-  fetchUser(2),
-  fetchUser(3)
+  delay(100),
+  delay(200),
+  delay(300)
 ])
-  .then(users => {
-    console.log('All users:', users);
-  })
-  .catch(error => {
-    console.error('One of the requests failed:', error);
+  .then(messages => {
+    console.log('All done:', messages);
+    // ["Waited for 100ms", "Waited for 200ms", "Waited for 300ms"]
   });
 
 // Promise.race: 가장 빠른 것만
@@ -378,6 +399,35 @@ Promise.allSettled([
         console.log('Failed:', result.reason);
       }
     });
+  });
+
+// 실전: API 호출
+function fetchUser(userId) {
+  return fetch(`/api/users/${userId}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    });
+}
+
+function fetchUserPosts(userId) {
+  return fetch(`/api/users/${userId}/posts`)
+    .then(response => response.json());
+}
+
+// 체인 사용
+fetchUser(1)
+  .then(user => {
+    console.log('User:', user);
+    return fetchUserPosts(user.id);
+  })
+  .then(posts => {
+    console.log('Posts:', posts);
+  })
+  .catch(error => {
+    console.error('Failed to fetch:', error);
   });
 ```
 
@@ -1405,16 +1455,92 @@ export class GameClient {
 
 ---
 
+## 8. 공통 오류와 해결
+
+- **TypeScript 컴파일 에러**: 타입 미지정 → 명시적 타입 추가.
+- **Promise 체이닝**: 중첩 콜백 → async/await 사용.
+- **스코프 혼동**: var 사용 → const/let으로 변경.
+- **모듈 import**: 경로 틀림 → 절대/상대 경로 확인.
+- **제네릭 오버헤드**: 불필요한 복잡성 → 간단한 타입으로 시작.
+
+---
+
+## 9. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. const와 let 차이? (재할당 가능성)
+2. Promise.all? (병렬 실행)
+3. interface vs type? (확장성 vs 유연성)
+4. 제네릭 예시? (Array<T>)
+5. Arrow function의 this 바인딩 특징?
+6. Destructuring의 주요 장점?
+7. Spread operator의 용도?
+8. Template literals의 특징?
+9. async/await의 장점?
+10. Type narrowing의 예시?
+
+**완료 조건**: 프로젝트 적용 코드 실행, 퀴즈 80% 정답.
+
+**다음**: T02/T03/T06 선택!
+
+---
+
+## 10. 추가 리소스
+
+### 공식 문서
+- [MDN JavaScript](https://developer.mozilla.org/ko/docs/Web/JavaScript): JS 레퍼런스.
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/): TS 공식 가이드.
+- [Node.js Docs](https://nodejs.org/en/docs/): Node.js 공식 문서.
+
+### 튜토리얼
+- [JavaScript.info](https://ko.javascript.info/): 무료 JS 튜토리얼 (한글).
+- [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/): 심화 TS.
+- [Eloquent JavaScript](https://eloquentjavascript.net/): 무료 책 (영문).
+
+### 비디오
+- [Traversy Media JS/TS](https://www.youtube.com/c/TraversyMedia): YouTube 시리즈.
+- [Academind TS](https://www.youtube.com/c/Academind): TS 코스.
+- [freeCodeCamp JS](https://www.youtube.com/watch?v=PkZNo7MFNFg): 무료 JS 코스.
+
+### 실습 플랫폼
+- [LeetCode](https://leetcode.com/): 알고리즘 문제 풀이.
+- [CodeSandbox](https://codesandbox.io/): 온라인 코드 에디터.
+- [TypeScript Playground](https://www.typescriptlang.org/play): TS 실험.
+
+### 커뮤니티
+- [Stack Overflow JS/TS](https://stackoverflow.com/questions/tagged/javascript+typescript): Q&A.
+- [Reddit r/javascript](https://www.reddit.com/r/javascript/): JS 커뮤니티.
+- [Dev.to](https://dev.to/): 개발자 블로그.
+
+---
+
 **튜토리얼 완료 체크리스트**:
-- [ ] ES6+ 문법 (const/let, arrow function, destructuring, spread/rest) 이해
-- [ ] Promise와 async/await로 비동기 코드 작성
-- [ ] TypeScript 기본 타입 사용
-- [ ] 인터페이스와 타입 별칭 정의
-- [ ] 제네릭으로 재사용 가능한 함수 작성
-- [ ] 타입 좁히기 (type narrowing) 적용
-- [ ] 유틸리티 타입 (Partial, Pick, Omit 등) 활용
-- [ ] ES Modules로 모듈 구조화
-- [ ] 실전 프로젝트 타입 정의 작성
+- [ ] ES6+ 문법 이해
+  - [ ] const/let과 블록 스코프
+  - [ ] Arrow function과 this 바인딩
+  - [ ] Destructuring (구조 분해 할당)
+  - [ ] Spread/Rest Operator
+  - [ ] Template Literals
+- [ ] Promise와 async/await
+  - [ ] Promise 기본 사용
+  - [ ] async/await 문법
+  - [ ] 에러 핸들링
+- [ ] TypeScript 타입 시스템
+  - [ ] 기본 타입 (string, number, boolean 등)
+  - [ ] 인터페이스와 타입 별칭
+  - [ ] 유니온과 인터섹션 타입
+- [ ] 고급 타입 패턴
+  - [ ] 제네릭
+  - [ ] 타입 좁히기
+  - [ ] 유틸리티 타입 (Partial, Pick, Omit 등)
+- [ ] 모듈 시스템
+  - [ ] ES Modules import/export
+  - [ ] CommonJS require/module.exports
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 프로젝트 적용
+  - [ ] 실전 코드 작성
+- [ ] 퀴즈 80% 이상 정답
 
 **학습 시간**: _____ 시간 소요
 **다음 튜토리얼**: _____

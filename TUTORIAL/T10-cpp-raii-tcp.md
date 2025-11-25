@@ -1,10 +1,12 @@
 # T10: Modern C++17 + RAII + TCP 소켓
 
 > **목표**: Modern C++ 기초와 네트워크 프로그래밍 완전 정복
-> **예상 시간**: 15-20시간
+> **예상 시간**: 15-20시간 (주 7-10시간) (주 7-10시간)
 > **난이도**: 🟠 고급
-> **선행 요구사항**: C 기본 문법
+> **선행 요구사항**: [T9.5: C++ 기초](./T9.5-cpp-basics.md)
 > **적용 프로젝트**: game-server lab1.1-1.2
+> **퀄리티 보장**: 안전한 코드, RAII 패턴, 실행 서버
+> **효율성 보장**: 단계적 학습, 실습 프로젝트, 디버깅 팁
 
 ---
 
@@ -19,6 +21,9 @@
 7. [에코 서버 구현](#7-에코-서버-구현)
 8. [트러블슈팅](#8-트러블슈팅)
 9. [프로젝트 적용](#9-프로젝트-적용)
+10. [공통 오류와 해결](#10-공통-오류와-해결)
+11. [퀴즈 및 다음 단계](#11-퀴즈-및-다음-단계)
+12. [추가 리소스](#12-추가-리소스)
 
 ---
 
@@ -842,8 +847,59 @@ public:
 3. **Move semantics가 성능에 미치는 영향은?**
 4. **Mutex와 Lock Guard의 관계는?**
 5. **TCP 3-way handshake 과정은?**
+6. **auto 키워드의 장점은?**
+7. **Lambda 캡처 리스트의 종류는?**
+8. **RAII가 예외 안전성을 보장하는 이유는?**
+9. **std::thread와 join/detach의 차이는?**
+10. **TCP와 UDP의 차이는?**
 
 ---
+
+## 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. auto 키워드? (타입 추론)
+2. RAII 패턴? (리소스 관리)
+3. unique_ptr? (단독 소유권)
+4. move semantics? (효율적 복사)
+5. std::thread? (스레드 생성)
+6. TCP 소켓? (연결 지향)
+7. bind() 함수? (소켓 주소 바인딩)
+8. listen() 함수? (연결 대기)
+9. accept() 함수? (연결 수락)
+10. RAII 소멸자? (자동 정리)
+
+**완료 조건**: 에코 서버 실행, 멀티스레드 테스트.
+
+**다음**: T11 Asio + WebSocket!
+
+---
+
+## 추가 리소스
+
+### Modern C++ 문서
+- [C++17 Features](https://en.cppreference.com/w/cpp/17): C++17 표준 기능.
+- [Modern C++ Best Practices](https://github.com/cpp-best-practices/cppbestpractices): 가이드라인.
+
+### 네트워크 프로그래밍
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/): TCP/IP 튜토리얼.
+- [TCP/IP Illustrated](https://www.amazon.com/TCP-IP-Illustrated-Vol-Addison-Wesley-Professional/dp/0201633469): 교과서.
+
+### RAII와 스마트 포인터
+- [Smart Pointers in C++](https://www.geeksforgeeks.org/smart-pointers-cpp/): 상세 설명.
+- [RAII Explained](https://www.modernescpp.com/index.php/raii-dynamically-and-statically): 심화.
+
+### 튜토리얼
+- [C++ Concurrency in Action](https://www.manning.com/books/c-plus-plus-concurrency-in-action): 멀티스레딩 책.
+- [Boost.Asio Documentation](https://www.boost.org/doc/libs/1_75_0/doc/html/boost_asio.html): 비동기 IO.
+
+### 실습 플랫폼
+- [Compiler Explorer](https://godbolt.org/): C++ 컴파일러 온라인.
+- [Coliru](http://coliru.stacked-crooked.com/): 코드 공유.
+
+### 커뮤니티
+- [Stack Overflow C++](https://stackoverflow.com/questions/tagged/c%2B%2B): Q&A.
+- [Reddit r/cpp](https://www.reddit.com/r/cpp/): 토론.
 
 ## 다음 단계
 
@@ -853,13 +909,34 @@ public:
 ---
 
 **완료 체크리스트**:
-- [ ] Modern C++ 문법 이해
-- [ ] RAII 패턴 적용
-- [ ] Smart pointer 활용
-- [ ] Move semantics 이해
-- [ ] 멀티스레딩 기초
+- [ ] Modern C++17 기초
+  - [ ] auto 키워드와 타입 추론
+  - [ ] Range-based for loop
+  - [ ] Lambda 표현식
+- [ ] RAII 패턴
+  - [ ] RAII 개념 이해
+  - [ ] RAII 래퍼 클래스 구현
+- [ ] Smart Pointers
+  - [ ] unique_ptr 사용
+  - [ ] shared_ptr와 weak_ptr
+- [ ] Move Semantics
+  - [ ] lvalue vs rvalue
+  - [ ] move 생성자와 할당자
+- [ ] 멀티스레딩
+  - [ ] std::thread 생성
+  - [ ] mutex와 lock
+  - [ ] condition_variable
 - [ ] TCP 소켓 프로그래밍
+  - [ ] 소켓 생성과 바인딩
+  - [ ] 연결 수립
+  - [ ] 데이터 송수신
 - [ ] 에코 서버 구현
-- [ ] 멀티스레드 서버 구현
+  - [ ] 싱글 스레드 서버
+  - [ ] 멀티스레드 서버
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 프로젝트 적용
+  - [ ] game-server 통합
+- [ ] 퀴즈 80% 이상 정답
 
 **학습 시간**: _____ 시간 소요

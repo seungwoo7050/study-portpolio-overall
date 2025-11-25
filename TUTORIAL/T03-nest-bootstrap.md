@@ -1,10 +1,12 @@
 # T03: NestJS 기본 뼈대
 
 > **목표**: NestJS 프로젝트 구조와 핵심 개념 완전 정복
-> **예상 시간**: 10-15시간
+> **예상 시간**: 10-15시간 (주 5-7시간)
 > **난이도**: 🟡 중급
 > **선행 요구사항**: [T01: JS/TS 코어](./T01-js-ts-core.md)
 > **적용 프로젝트**: backend/node.js N2.0
+> **퀄리티 보장**: 구조화된 코드, DI 패턴, 테스트 가능
+> **효율성 보장**: 모듈별 학습, 실습 프로젝트, CI/CD
 
 ---
 
@@ -19,6 +21,9 @@
 7. [GitHub Actions CI](#7-github-actions-ci)
 8. [트러블슈팅](#8-트러블슈팅)
 9. [프로젝트 적용](#9-프로젝트-적용)
+10. [공통 오류와 해결](#10-공통-오류와-해결)
+11. [퀴즈 및 다음 단계](#11-퀴즈-및-다음-단계)
+12. [추가 리소스](#12-추가-리소스)
 
 ---
 
@@ -996,6 +1001,21 @@ export class AppModule {}
 5. **Guard와 Interceptor의 차이는?**
    - Guard: 요청 허용/거부, Interceptor: 요청/응답 변환
 
+6. **NestJS에서 데코레이터의 역할은?**
+   - 메타데이터 추가, 선언적 프로그래밍
+
+7. **Prisma의 장점은 무엇인가요?**
+   - 타입 안전성, 자동 생성 코드, 마이그레이션
+
+8. **ConfigModule을 사용하는 이유는?**
+   - 환경 변수 중앙 관리, 타입 안전성
+
+9. **Jest로 테스트를 작성하는 이유는?**
+   - 코드 품질 보장, 리팩토링 안정성
+
+10. **GitHub Actions의 CI/CD 역할은?**
+    - 자동화된 빌드, 테스트, 배포
+
 ---
 
 ## 다음 단계
@@ -1005,16 +1025,97 @@ export class AppModule {}
 
 ---
 
+## 10. 공통 오류와 해결
+
+- **모듈 등록 누락**: Unknown dependencies → app.module.ts 확인.
+- **Prisma 연결**: DB 연결 실패 → 환경 변수 체크.
+- **데코레이터 누락**: @Injectable → 서비스에 추가.
+- **타입 불일치**: DTO validation → class-validator 사용.
+- **CI 실패**: 스크립트 오류 → 로컬 테스트.
+
+---
+
+## 11. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. @Module? (메타데이터 데코레이터)
+2. Dependency Injection? (토큰 기반 주입)
+3. Prisma schema? (DB 모델 정의)
+4. GitHub Actions? (CI/CD 파이프라인)
+5. @Controller 데코레이터? (HTTP 요청 라우팅)
+6. @Injectable의 역할? (DI 컨테이너 등록)
+7. ValidationPipe? (DTO 검증)
+8. Prisma migrate? (DB 스키마 변경)
+9. Guard vs Interceptor? (요청 제어 vs 변환)
+10. 환경 변수 관리? (ConfigModule)
+
+**완료 조건**: API 실행, 테스트 통과.
+
+**다음**: T05/T06 선택!
+
+---
+
+## 12. 추가 리소스
+
+### NestJS
+- [NestJS 공식 문서](https://docs.nestjs.com/): 가이드와 API.
+- [NestJS CLI](https://docs.nestjs.com/cli/overview): 명령어 도구.
+- [NestJS Awesome](https://github.com/juliandavidmr/awesome-nestjs): 리소스 모음.
+
+### Prisma
+- [Prisma Docs](https://www.prisma.io/docs/): ORM 가이드.
+- [Prisma Studio](https://www.prisma.io/studio): DB GUI.
+- [Prisma Cheat Sheet](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference): 스키마 레퍼런스.
+
+### CI/CD
+- [GitHub Actions](https://docs.github.com/actions): 워크플로우.
+- [Jest Testing](https://jestjs.io/): 유닛 테스트.
+- [Supertest](https://github.com/visionmedia/supertest): API 테스트.
+
+### 튜토리얼
+- [NestJS Course](https://www.youtube.com/playlist?list=PL4iRawYDaKtGKjL2v5w4tYqJm5GtmqX): YouTube 시리즈.
+- [Prisma Guide](https://www.prisma.io/docs/getting-started): 시작 가이드.
+- [NestJS Zero to Hero](https://www.udemy.com/course/nestjs-zero-to-hero/): Udemy 코스.
+
+### 실습 플랫폼
+- [NestJS Playground](https://docs.nestjs.com/first-steps): 온라인 실습.
+- [TypeScript Playground](https://www.typescriptlang.org/play): TS 실험.
+
+### 커뮤니티
+- [NestJS Discord](https://discord.gg/nestjs): 커뮤니티 채팅.
+- [Reddit r/Nestjs_framework](https://www.reddit.com/r/Nestjs_framework/): Q&A.
+
+---
+
 **완료 체크리스트**:
-- [ ] NestJS 프로젝트 생성
-- [ ] 모듈/컨트롤러/서비스 이해
-- [ ] Dependency Injection 활용
-- [ ] 환경 설정 구성
-- [ ] Prisma 스키마 정의
-- [ ] 마이그레이션 실행
-- [ ] Seed 데이터 생성
-- [ ] GitHub Actions CI 구축
-- [ ] CRUD API 구현
-- [ ] 테스트 작성
+- [ ] NestJS 소개 이해
+  - [ ] NestJS 장점 파악
+  - [ ] 프로젝트 생성 및 구조 확인
+- [ ] 프로젝트 구조
+  - [ ] 권장 디렉터리 구조 적용
+  - [ ] main.ts 설정
+- [ ] 모듈/컨트롤러/서비스
+  - [ ] 모듈 생성 및 구성
+  - [ ] 컨트롤러 구현
+  - [ ] 서비스 작성
+- [ ] Dependency Injection
+  - [ ] DI 개념 이해
+  - [ ] 프로바이더 등록
+  - [ ] 토큰 기반 주입
+- [ ] 환경 설정
+  - [ ] ConfigModule 사용
+  - [ ] 환경 변수 관리
+- [ ] Prisma ORM
+  - [ ] 스키마 정의
+  - [ ] 마이그레이션 실행
+  - [ ] Seed 데이터 생성
+- [ ] GitHub Actions CI
+  - [ ] 워크플로우 작성
+  - [ ] 테스트 자동화
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 프로젝트 적용
+  - [ ] CRUD API 구현
+- [ ] 퀴즈 80% 이상 정답
 
 **학습 시간**: _____ 시간 소요

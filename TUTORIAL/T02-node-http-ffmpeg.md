@@ -1,10 +1,12 @@
 # T02: Node.js HTTP + ffmpeg CLI
 
 > **목표**: Node.js로 파일 업로드 서버 구축 및 ffmpeg CLI 명령어 실행
-> **예상 시간**: 6-8시간
+> **예상 시간**: 6-8시간 (주 3-4시간)
 > **난이도**: 🟢 기초
 > **선행 요구사항**: [T01: JS/TS 코어](./T01-js-ts-core.md)
 > **적용 프로젝트**: video-editor v1.0-v1.2
+> **퀄리티 보장**: 실행 서버, ffmpeg 통합, 에러 핸들링
+> **효율성 보장**: 핵심 모듈만, 실습 프로젝트, 트러블슈팅
 
 ---
 
@@ -17,6 +19,9 @@
 5. [프로세스 관리](#5-프로세스-관리)
 6. [트러블슈팅](#6-트러블슈팅)
 7. [프로젝트 적용](#7-프로젝트-적용)
+8. [공통 오류와 해결](#8-공통-오류와-해결)
+9. [퀴즈 및 다음 단계](#9-퀴즈-및-다음-단계)
+10. [추가 리소스](#10-추가-리소스)
 
 ---
 
@@ -1037,6 +1042,11 @@ export class VideoService {
 3. **대용량 파일을 처리할 때 Stream을 사용하는 이유는?**
 4. **child_process의 exec와 spawn의 차이는?**
 5. **ffmpeg에서 -c copy 옵션의 의미는?**
+6. **Express 미들웨어의 역할은 무엇인가요?**
+7. **multer로 파일 업로드를 처리할 때 주의할 점은?**
+8. **HTTP 서버에서 CORS를 설정하는 이유는?**
+9. **비동기 프로세스 실행 시 에러 핸들링은 어떻게 하나요?**
+10. **ffmpeg 명령어에서 -ss와 -t 옵션의 차이는?**
 
 ---
 
@@ -1044,3 +1054,92 @@ export class VideoService {
 
 - WebSocket 실시간 진행률 → [T04: DB + Redis + WebSocket](./T04-db-redis-websocket.md)
 - NestJS로 전환 → [T03: NestJS 기본](./T03-nest-bootstrap.md)
+
+---
+
+## 8. 공통 오류와 해결
+
+- **포트 충돌**: EADDRINUSE → 다른 포트 사용.
+- **ffmpeg 설치**: 명령어 없음 → PATH 확인, 설치.
+- **파일 권한**: EACCES → 권한 설정.
+- **메모리 부족**: 대용량 파일 → 스트림 사용.
+- **타임아웃**: 긴 처리 → 프로세스 모니터링.
+
+---
+
+## 9. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. fs.readFile vs fs.createReadStream? (메모리 vs 스트림)
+2. multer dest? (업로드 폴더)
+3. child_process exec? (단순 명령)
+4. ffmpeg -ss? (시작 시간)
+5. path.join의 장점? (OS 독립적 경로)
+6. HTTP 서버에서 CORS란? (교차 출처 리소스 공유)
+7. ffmpeg에서 -c copy 옵션의 의미? (코덱 복사)
+8. 프로세스 관리에서 stdio 옵션? (입출력 스트림)
+9. 파일 업로드 시 멀티파트란? (바이너리 데이터 전송)
+10. 이벤트 루프의 역할? (비동기 작업 처리)
+
+**완료 조건**: 서버 실행, 비디오 트림 성공.
+
+**다음**: T03/T04 선택!
+
+---
+
+## 10. 추가 리소스
+
+### Node.js
+- [Node.js 공식 문서](https://nodejs.org/docs/): API 레퍼런스.
+- [Express 가이드](https://expressjs.com/): 웹 프레임워크.
+- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices): 가이드.
+
+### ffmpeg
+- [ffmpeg 위키](https://trac.ffmpeg.org/wiki/): 튜토리얼.
+- [ffmpeg CLI](https://ffmpeg.org/ffmpeg.html): 명령어 옵션.
+- [FFmpeg Cheat Sheet](https://gist.github.com/steven2358/8c36d77b6f9e2b2b0b8b): 명령어 요약.
+
+### 튜토리얼
+- [Multer Docs](https://github.com/expressjs/multer): 업로드 라이브러리.
+- [Node.js File Upload](https://www.npmjs.com/package/multer): 실습 예제.
+
+### 비디오
+- [Traversy Media Node](https://www.youtube.com/c/TraversyMedia): YouTube 시리즈.
+- [Academind Node.js](https://www.youtube.com/c/Academind): 심화 튜토리얼.
+
+### 실습 플랫폼
+- [Node.js Playground](https://nodejs.org/en/docs/guides/): 온라인 테스트.
+- [Glitch](https://glitch.com/): 웹 앱 실습.
+
+### 커뮤니티
+- [Stack Overflow Node.js](https://stackoverflow.com/questions/tagged/node.js): Q&A.
+- [Reddit r/node](https://www.reddit.com/r/node/): 커뮤니티.
+
+---
+
+**튜토리얼 완료 체크리스트**:
+- [ ] Node.js 코어 모듈 이해
+  - [ ] fs 모듈로 파일 시스템 작업
+  - [ ] path 모듈로 경로 조작
+  - [ ] child_process로 외부 명령 실행
+- [ ] HTTP 서버 구축
+  - [ ] Express 서버 설정
+  - [ ] 미들웨어 구성
+  - [ ] 라우팅 구현
+- [ ] 파일 업로드 처리
+  - [ ] multer로 파일 업로드
+  - [ ] 파일 검증 및 저장
+- [ ] ffmpeg CLI 기초
+  - [ ] 비디오 정보 추출
+  - [ ] 비디오 트림 및 변환
+- [ ] 프로세스 관리
+  - [ ] 비동기 프로세스 실행
+  - [ ] 에러 핸들링
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 프로젝트 적용
+  - [ ] 실전 서버 구축
+- [ ] 퀴즈 80% 이상 정답
+
+**학습 시간**: _____ 시간 소요
+**다음 튜토리얼**: _____

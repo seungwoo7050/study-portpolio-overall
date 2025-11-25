@@ -21,6 +21,9 @@
 9. [네트워크 시뮬레이션](#9-네트워크-시뮬레이션)
 10. [트러블슈팅](#10-트러블슈팅)
 11. [프로젝트 적용](#11-프로젝트-적용)
+12. [공통 오류와 해결](#12-공통-오류와-해결)
+13. [퀴즈 및 다음 단계](#13-퀴즈-및-다음-단계)
+14. [추가 리소스](#14-추가-리소스)
 
 ---
 
@@ -1103,19 +1106,124 @@ private:
 3. **스냅샷과 델타의 차이는?**
 4. **서버 리컨실리에이션은 언제 발생하나?**
 5. **60 TPS 게임 루프를 안정적으로 유지하는 방법은?**
+6. **엔티티 보간의 목적은?**
+7. **NAT 홀펀칭의 원리는?**
+8. **패킷 시퀀스 번호의 역할은?**
+9. **ACK 비트의 장점은?**
+10. **권위 서버 패턴의 장점은?**
 
 ---
 
 **완료 체크리스트**:
-- [ ] UDP 소켓 프로그래밍 이해
-- [ ] 신뢰성 계층 (seq, ack, ack_bits) 구현
-- [ ] 권위 서버 패턴 적용
-- [ ] 스냅샷/델타 동기화 구현
-- [ ] 클라이언트 예측 구현
-- [ ] 서버 리컨실리에이션 구현
-- [ ] 엔티티 보간 구현
-- [ ] 60 TPS 게임 루프 안정화
-- [ ] 네트워크 시뮬레이션 테스트
-- [ ] 부하 테스트 (200+ 동시 접속)
+- [ ] UDP 소켓 기초
+  - [ ] UDP vs TCP 차이점
+  - [ ] UDP 소켓 생성과 바인딩
+  - [ ] Non-blocking 모드
+- [ ] 신뢰성 계층 구현
+  - [ ] 시퀀스 번호와 ACK
+  - [ ] 재전송 로직
+  - [ ] 패킷 버퍼링
+- [ ] 권위 서버 패턴
+  - [ ] 서버 최종 결정권
+  - [ ] 클라이언트 예측
+  - [ ] 서버 리컨실리에이션
+- [ ] 스냅샷/델타 동기화
+  - [ ] 스냅샷 전송
+  - [ ] 델타 압축
+  - [ ] 상태 동기화
+- [ ] 클라이언트 예측
+  - [ ] 로컬 시뮬레이션
+  - [ ] 입력 버퍼링
+  - [ ] 예측 보정
+- [ ] 서버 리컨실리에이션
+  - [ ] 서버 상태 검증
+  - [ ] 클라이언트 상태 맞춤
+  - [ ] 롤백 처리
+- [ ] 엔티티 보간
+  - [ ] 위치 보간
+  - [ ] 회전 보간
+  - [ ] 부드러운 이동
+- [ ] 60 TPS 게임 루프
+  - [ ] 고정 타임스텝
+  - [ ] 프레임 드랍 처리
+  - [ ] 성능 모니터링
+- [ ] 네트워크 시뮬레이션
+  - [ ] 지연 시뮬레이션
+  - [ ] 패킷 손실
+  - [ ] 재정렬
+- [ ] 트러블슈팅
+  - [ ] 공통 오류 해결
+- [ ] 프로젝트 적용
+  - [ ] netcode-core 통합
+- [ ] 퀴즈 80% 이상 정답
+
+**학습 시간**: _____ 시간 소요
+
+---
+
+## 12. 공통 오류와 해결
+
+- **패킷 손실**: UDP 비신뢰 → 재전송 로직 추가.
+- **순서 역전**: 시퀀스 번호 → 버퍼링 후 정렬.
+- **지연 변동**: jitter → 보간 사용.
+- **예측 오류**: 리컨실리에이션 → 서버 상태 동기화.
+- **NAT 문제**: 홀펀칭 → STUN/TURN.
+
+---
+
+## 13. 퀴즈 및 다음 단계
+
+**퀴즈**:
+1. UDP vs TCP? (비신뢰 vs 신뢰)
+2. 스냅샷? (전체 상태 전송)
+3. 예측? (클라이언트 로컬 시뮬)
+4. 리컨실리에이션? (서버 상태 맞춤)
+5. 엔티티 보간? (부드러운 이동)
+6. 시퀀스 번호? (패킷 순서)
+7. ACK 비트? (신뢰성 확인)
+8. 홀펀칭? (NAT 우회)
+9. 60 TPS? (초당 60 업데이트)
+10. 권위 서버? (서버 최종 결정권)
+
+**완료 조건**: 넷코드 서버 실행, 클라이언트 동기화.
+
+**다음**: 실전 프로젝트!
+
+---
+
+## 14. 추가 리소스
+
+### 넷코드
+- [Gaffer On Games](https://gafferongames.com/): 넷코드 블로그.
+- [Valve Source](https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking): 소스 엔진 넷코드.
+- [Glenn Fiedler](https://gafferongames.com/post/): 저자 블로그.
+
+### UDP
+- [Beej's Guide](https://beej.us/guide/bgnet/html/): 네트워크 프로그래밍.
+- [RFC 768](https://tools.ietf.org/html/rfc768): UDP 스펙.
+- [UDP Hole Punching](https://en.wikipedia.org/wiki/UDP_hole_punching): NAT 우회.
+
+### 예측/리컨실리에이션
+- [Client-Side Prediction](https://www.gabrielgambetta.com/client-side-prediction-server-reconciliation.html): 상세 설명.
+- [Entity Interpolation](https://www.gabrielgambetta.com/entity-interpolation.html): 보간 가이드.
+- [Networked Physics](https://gafferongames.com/post/networked-physics/): 물리 동기화.
+
+### 튜토리얼
+- [Netcode Tutorial](https://github.com/networkprotocol/netcode): 샘플 코드.
+- [Game Networking](https://developer.valvesoftware.com/wiki/Game_Network_Programming): Valve 가이드.
+- [Multiplayer Game Programming](https://www.gabrielgambetta.com/client-server-game-architecture.html): 아키텍처 가이드.
+
+### 비디오
+- [Overwatch Netcode](https://www.youtube.com/watch?v=W3aLlN4BRjE): 오버워치 넷코드.
+- [Fortnite Netcode](https://www.youtube.com/results?search_query=fortnite+netcode): 포트나이트 발표.
+- [GDC Talks](https://www.youtube.com/results?search_query=gdc+netcode): 게임 개발 컨퍼런스.
+
+### 실습 플랫폼
+- [Compiler Explorer](https://godbolt.org/): C++ 온라인 컴파일러.
+- [Networking Test Tools](https://www.clumsyapp.com/): 네트워크 시뮬레이션.
+
+### 커뮤니티
+- [Reddit r/gamedev](https://www.reddit.com/r/gamedev/): 게임 개발 토론.
+- [Stack Overflow Networking](https://stackoverflow.com/questions/tagged/networking): 네트워크 Q&A.
 
 **학습 시간**: _____ 시간 소요
