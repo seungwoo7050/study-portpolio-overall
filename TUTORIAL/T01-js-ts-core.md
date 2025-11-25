@@ -1451,7 +1451,7 @@ export class GameClient {
 ✅ **T01 완료 후**:
 - Node.js 백엔드 → [T02: Node HTTP + ffmpeg](./T02-node-http-ffmpeg.md) 또는 [T03: NestJS](./T03-nest-bootstrap.md)
 - React 프론트 → [T06: React/Vite 기본](./T06-react-vite-basics.md)
-- C++ 게임 서버 → [T10: Modern C++17](./T10-cpp-raii-tcp.md)
+- C++ 게임 서버 → [T10: C++ 기초](./T10-cpp-basics.md), [T11: Modern C++17](./T11-cpp-raii-tcp.md)
 
 ---
 

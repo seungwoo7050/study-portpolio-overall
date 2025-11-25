@@ -1456,7 +1456,7 @@ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
 - **JavaScript/TypeScript 학습**: [T01 - JS/TS 코어 →](./T01-js-ts-core.md)
 - **React 학습**: [T06 - React/Vite 기본 →](./T06-react-vite-basics.md)
 - **Node.js 학습**: [T02 - Node HTTP + ffmpeg →](./T02-node-http-ffmpeg.md)
-- **C++ 학습**: [T10 - Modern C++ + TCP 소켓 →](./T10-cpp-raii-tcp.md)
+- **C++ 학습**: [T11 - Modern C++ + TCP 소켓 →](./T11-cpp-raii-tcp.md)
 
 ---
 
@@ -1520,4 +1520,4 @@ brew install --cask vscode # GUI 앱
 ---
 
 **마지막 업데이트**: 2025년 1월
-**다음 튜토리얼**: 필요한 튜토리얼 선택 (T01, T02, T06, T10)
+**다음 튜토리얼**: 필요한 튜토리얼 선택 (T01, T02, T06, T10, T11)
