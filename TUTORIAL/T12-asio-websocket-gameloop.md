@@ -1,9 +1,9 @@
-# T11: Boost.Asio + WebSocket + 게임 루프
+# T12: Boost.Asio + WebSocket + 게임 루프
 
 > **목표**: Boost.Asio와 WebSocket으로 비동기 게임 서버 구축 및 게임 루프 구현
-> **예상 시간**: 12-15시간 (주 6-8시간)
-> **난이도**: 🔴 고급
-> **선행 요구사항**: [T10: Modern C++](./T10-cpp-raii-tcp.md)
+> **예상 시간**: 18-25시간 (주 9-12시간)
+> **난이도**: 🟠 고급
+> **선행 요구사항**: [T11: Modern C++17 + RAII + TCP](./T11-cpp-raii-tcp.md)
 > **적용 프로젝트**: game-server lab1.3-1.4
 > **퀄리티 보장**: 비동기 서버, WebSocket 통신, 게임 루프
 > **효율성 보장**: Asio 패턴, 실습 채팅/Pong, 디버깅
