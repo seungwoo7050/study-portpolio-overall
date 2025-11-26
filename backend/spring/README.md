@@ -1,4 +1,4 @@
-# Web Phase 1.5 – Spring 패턴 훈련 (2.0–2.5)
+# Web Phase 1.5 – Spring 패턴 훈련 (2.0–2.6)
 
 ## 개요
 
@@ -7,14 +7,16 @@
 * mini-spring(1.x)에서 HTTP/라우팅/DI/커넥션풀/비동기 기본기를 익혔다고 가정한다.
 * 이제 실제 현업에서 많이 쓰는 **Spring Boot 기반 웹 백엔드 패턴**을
   **작은 도메인**에 반복 적용하는 훈련을 한다.
+* Milestone 2.6에서는 **프로덕션 인프라**(PostgreSQL, Redis, Docker)를 추가한다.
 * 이 2.x 단계 이후에 **Sagaline(이커머스 프로덕트)**로 넘어간다.
 
 **핵심 포인트**
 
-* **단일 Spring Boot 프로젝트**에서 2.0 ~ 2.5를 순차적으로 확장한다.
+* **단일 Spring Boot 프로젝트**에서 2.0 ~ 2.6을 순차적으로 확장한다.
 * **2.0에서 CI를 세팅**해두고,
   이후 마일스톤마다 **해당 마일스톤 수준의 테스트를 추가**해서
   GitHub push 시마다 자동으로 검증되게 한다.
+* **2.6에서 프로덕션 준비** 완료: Docker, PostgreSQL, Redis 통합
 
 ---
 
@@ -682,3 +684,64 @@ CI:
    * 완벽한 설계/리팩터링을 목표로 잡지 말고,
 
      * “문제 → 어떤 패턴으로 풀지 결정 → 빠르게 적용해보기”에 집중하는 게 맞다.
+---
+
+## Milestone 2.6 – Docker, PostgreSQL, Redis 인프라
+
+**목표**
+
+* Milestone 2.0~2.5의 기능을 **프로덕션 환경에서 운영 가능하도록** 인프라를 강화한다.
+* H2 → PostgreSQL 전환
+* Simple 캐시 → Redis 전환
+* Docker 기반 전체 스택 컨테이너화
+
+### 주요 구현 내용
+
+1. **PostgreSQL 통합**
+   * `build.gradle`에 PostgreSQL 드라이버 추가
+   * `application-prod.yml` 프로파일 생성
+   * 환경별 DB 분리:
+     - `local`: H2 인메모리 (빠른 개발)
+     - `test`: H2 인메모리 (빠른 테스트)
+     - `prod`: PostgreSQL (안정성)
+
+2. **Redis 캐시 통합**
+   * `spring-boot-starter-data-redis` 의존성 추가
+   * `CacheConfig.java` 작성:
+     - Redis 사용 가능 시: RedisCacheManager
+     - Redis 미설정 시: ConcurrentMapCacheManager (fallback)
+   * 기존 `@Cacheable` 코드 변경 없이 동작
+
+3. **Docker & docker-compose.yml**
+   * `Dockerfile`: Multi-stage build (Gradle + Eclipse Temurin JRE)
+   * `docker-compose.yml`: 전체 스택 (app, PostgreSQL, Redis, Elasticsearch, Kafka)
+   * 네트워크 격리 및 볼륨 영속성
+   * `.env.example`: 환경 변수 템플릿
+
+### 실행 방법
+
+```bash
+# 로컬 개발 (H2 + Simple cache)
+./gradlew bootRun --args='--spring.profiles.active=local'
+
+# Docker 전체 스택 (PostgreSQL + Redis)
+docker-compose up -d
+
+# 헬스 체크
+curl http://localhost:8080/api/health
+
+# Redis 캐시 확인
+docker exec -it redis redis-cli KEYS '*'
+```
+
+### 완료 기준
+
+* [ ] PostgreSQL 드라이버 및 Redis 의존성 추가
+* [ ] `application-prod.yml` 프로파일 작성
+* [ ] `CacheConfig.java` fallback 전략 구현
+* [ ] `Dockerfile` 및 `docker-compose.yml` 작성
+* [ ] 로컬(H2), Docker(PostgreSQL) 환경 모두 정상 동작
+* [ ] 기존 모든 테스트 통과
+
+**상세 설계:** `design/milestone-2.6.md` 참고
+

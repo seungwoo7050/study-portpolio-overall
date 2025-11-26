@@ -25,11 +25,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     implementation 'org.springframework.kafka:spring-kafka'
 
+    // S2.6: Redis cache
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
+    // S2.6: PostgreSQL (production DB)
+    runtimeOnly 'org.postgresql:postgresql'
+    // H2 (development/test DB)
     runtimeOnly 'com.h2database:h2'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

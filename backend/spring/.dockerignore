@@ -1,0 +1,44 @@
+# Build artifacts
+build/
+target/
+.gradle/
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test reports
+test-results/
+reports/
+
+# Documentation
+*.md
+design/
+the-shortest-distance/
+
+# CI/CD
+.github/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
