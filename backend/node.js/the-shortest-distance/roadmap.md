@@ -176,9 +176,10 @@
 
   * `## 1. N2.4: Elasticsearch Search`
   * `## 2. N2.5: Kafka Async Events`
-  * `## 3. N2.4-N2.5 체크리스트`
+  * `## 3. N2.6: Docker, PostgreSQL, Redis 인프라`
+  * `## 4. N2.4-N2.6 체크리스트`
 
-* 목적: Elasticsearch 검색, Kafka 이벤트 스트리밍 패턴 이해
+* 목적: Elasticsearch 검색, Kafka 이벤트 스트리밍, 프로덕션 인프라 패턴 이해
 
 ---
 
@@ -210,6 +211,57 @@
 
 ---
 
+## 5. Stage 3 - 프로덕션 인프라 (N2.6)
+
+### Step 5-1. 문서 4 N2.6 섹션 읽기
+
+**문서 4 (4.md)**
+
+* **언제:** N2.0-N2.5까지 완료하고, 프로덕션 배포를 준비할 때.
+* **읽을 부분:**
+
+  * `## 3. N2.6: Docker, PostgreSQL, Redis 인프라`
+
+* 목적: 프로덕션 환경을 위한 인프라 구축 방법 이해
+
+### Step 5-2. N2.6 구현
+
+* **PostgreSQL 전환**
+
+  * Prisma Schema `provider = "postgresql"` 변경
+  * 마이그레이션 재생성
+  * Docker Compose PostgreSQL 16 서비스 추가
+
+* **Redis 캐시**
+
+  * `CacheModule` Redis 통합
+  * Fallback 전략 (Redis 미설정 시 in-memory)
+  * 기존 캐싱 코드 호환성 유지
+
+* **Docker 컨테이너화**
+
+  * Dockerfile 작성 (Node 20 Alpine)
+  * docker-compose.yml 전체 스택 오케스트레이션
+  * 환경 변수 관리 (개발/Docker/프로덕션)
+
+* **빌드 & 실행**:
+
+  ```bash
+  # 전체 스택 시작
+  docker-compose up -d
+
+  # 마이그레이션 실행
+  docker-compose exec app npx prisma migrate deploy
+
+  # 헬스 체크
+  curl http://localhost:3000/api/health
+
+  # Redis 캐시 확인
+  docker-compose exec redis redis-cli KEYS '*'
+  ```
+
+---
+
 ## 최종 타임라인 요약
 
 1. **시작 전**
@@ -236,6 +288,11 @@
 
    * **4.md: 고급 패턴 II (Elasticsearch, Kafka)**
    * N2.4, N2.5 구현
+
+6. **Stage 3 (N2.6, 프로덕션 인프라)**
+
+   * **4.md: N2.6 섹션 (PostgreSQL, Redis, Docker)**
+   * N2.6 구현
 
 ---
 
