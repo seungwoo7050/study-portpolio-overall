@@ -1,0 +1,1958 @@
+diff --git a/.env.example b/.env.example
+index 386dada2b6e28b2b403a056b9d6154e2c9a66160..6fc4615502d141737ba35cc140b6e0e0df6ea6ac 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,20 +1,24 @@
+ # Application
+ PORT=3000
+ NODE_ENV=development
+ 
+-# Database
++# Database (SQLite)
+ DATABASE_URL="file:./dev.db"
+ 
+ # JWT
+ JWT_SECRET=your-secret-key-change-in-production
+ JWT_EXPIRES_IN=1d
+ 
+ # Elasticsearch
+ ELASTICSEARCH_NODE=http://localhost:9200
+ ELASTICSEARCH_ENABLED=false
+ 
+ # Kafka
+ KAFKA_BROKERS=localhost:9092
+ KAFKA_CLIENT_ID=web-phase1-5-node
+ KAFKA_GROUP_ID=notification-consumer-group
+ KAFKA_ENABLED=true
++
++# Redis
++REDIS_HOST=localhost
++REDIS_PORT=6379
+diff --git a/.env.test b/.env.test
+index 180e1df9d9056fdd95a2fdc4bccf7d8b86109152..8fb1345c3f5cb8b7d669a55f420d401f5881c924 100644
+--- a/.env.test
++++ b/.env.test
+@@ -1,20 +1,24 @@
+ # Test environment
+ PORT=3001
+ NODE_ENV=test
+ 
+-# Database - in-memory for tests
+-DATABASE_URL="file::memory:?cache=shared"
++# Database - SQLite for fast, isolated tests
++DATABASE_URL="file:./test.db"
+ 
+ # JWT
+ JWT_SECRET=test-secret-key
+ JWT_EXPIRES_IN=1h
+ 
+ # Elasticsearch - disabled for tests
+ ELASTICSEARCH_NODE=http://localhost:9200
+ ELASTICSEARCH_ENABLED=false
+ 
+ # Kafka - disabled for tests (use mocks)
+ KAFKA_BROKERS=localhost:9092
+ KAFKA_CLIENT_ID=web-phase1-5-node-test
+ KAFKA_GROUP_ID=test-consumer-group
+ KAFKA_ENABLED=false
++
++# Redis
++REDIS_HOST=
++REDIS_PORT=6379
+diff --git a/Dockerfile b/Dockerfile
+new file mode 100644
+index 0000000000000000000000000000000000000000..593b6b5eb17a967f4577906427626778de9cebee
+--- /dev/null
++++ b/Dockerfile
+@@ -0,0 +1,16 @@
++FROM node:20-alpine
++
++WORKDIR /app
++
++COPY package*.json ./
++RUN npm ci
++
++COPY . .
++RUN npx prisma generate
++RUN npm run build
++
++ENV NODE_ENV=production
++ENV PORT=3000
++EXPOSE 3000
++
++CMD ["node", "dist/main.js"]
+diff --git a/README.md b/README.md
+index 321160fa71c257c8a6bed6c37f51dcf6cc4670d1..eab9a5fc0f0c4631457c137832c1674670367336 100644
+--- a/README.md
++++ b/README.md
+@@ -1,123 +1,137 @@
+ # Web Phase 1.5 - Node.js Pattern Training
+ 
+-This project implements Web Phase 1.5 milestones (N2.0-N2.5) for Node.js backend pattern training using NestJS.
++This project implements Web Phase 1.5 milestones (N2.0-N2.6) for Node.js backend pattern training using NestJS.
+ 
+ ## Current Status
+ 
+-**All Milestones Completed (N2.0 - N2.5)** ✅
++**All Milestones Completed (N2.0 - N2.6)** ✅
+ 
+ **Milestone N2.0** - NestJS Bootstrap & CI Baseline ✅
+ - ✅ NestJS application setup
+ - ✅ Environment configuration
+ - ✅ Health check endpoint
+ - ✅ Basic e2e tests
+ - ✅ GitHub Actions CI pipeline
+ 
+ **Milestone N2.1** - Layered CRUD & Transaction Pattern ✅
+ - ✅ Issue tracker domain (User, Project, Issue, Comment)
+ - ✅ Controller/Service/Repository pattern with Prisma
+ - ✅ JWT authentication
+ - ✅ DTO validation with class-validator
+ - ✅ Transaction support
+ 
+ **Milestone N2.2** - Team & Role-Based Access Control ✅
+ - ✅ Team and TeamMember models
+ - ✅ RBAC with custom guards and decorators
+ - ✅ 401/403/404 status code handling
+ - ✅ Authorization tests
+ 
+ **Milestone N2.3** - Batch Jobs, Stats, Cache, External API ✅
+ - ✅ Daily statistics batch job (using @nestjs/schedule)
+ - ✅ Statistics API endpoints
+ - ✅ In-memory caching with @nestjs/cache-manager
+ - ✅ External API integration with retry logic
+ 
+ **Milestone N2.4** - Elasticsearch Search ✅
+ - ✅ Product catalog domain
+ - ✅ Elasticsearch integration
+ - ✅ Full-text search API
+ - ✅ Product sync with Elasticsearch
+ 
+ **Milestone N2.5** - Kafka Asynchronous Event Processing ✅
+ - ✅ Order and Notification domains
+ - ✅ Kafka producer for order events
+ - ✅ Kafka consumer for notifications
+ - ✅ Event-driven architecture
+ - ✅ Docker Compose setup for local development
+ 
++**Milestone N2.6** - Production Ready (DB, Cache, Deployable) ✅
++- ✅ SQLite-first schema for fast local/test runs (PostgreSQL optional via Docker)
++- ✅ Redis-backed global caching for popular issues and external API results
++- ✅ Dockerfile and expanded Docker Compose with Postgres, Redis, and app service
++- ✅ Environment profiles for local/test/prod
++
+ ## Tech Stack
+ 
+ - **Runtime**: Node.js 20+
+ - **Language**: TypeScript
+ - **Framework**: NestJS 10.x
+-- **Database**: SQLite (dev/test), PostgreSQL (production-ready)
++- **Database**: SQLite (default dev/test) or PostgreSQL via Docker Compose
+ - **ORM**: Prisma
+ - **Search**: Elasticsearch 8.x
+ - **Message Queue**: Kafka (via KafkaJS)
+ - **Authentication**: JWT (Passport)
+ - **Caching**: In-memory cache (@nestjs/cache-manager)
+ - **Validation**: class-validator, class-transformer
+ - **Testing**: Jest, Supertest
+ - **Package Manager**: npm
+ 
+ ## Getting Started
+ 
+ ### Prerequisites
+ 
+ - Node.js 20 or higher
+ - npm
++- Docker (for Postgres/Redis/Kafka/Elasticsearch services)
+ 
+ ### Installation
+ 
+ ```bash
+ # Install dependencies
+ npm install
+ 
+-# Generate Prisma client
++# Generate Prisma client (SQLite by default)
+ npm run prisma:generate
+ 
+-# (Optional) Create initial database
+-npm run prisma:migrate
+-
+-# (Optional) Start Kafka and Elasticsearch with Docker
+-docker-compose up -d
++# Optional: start external infrastructure (Postgres + Redis). Add kafka/elasticsearch as needed
++docker compose up -d db redis
+ ```
+ 
+ ### Running the Application
+ 
+ ```bash
+ # Development mode
+ npm run start:dev
+ 
+ # Production mode
+ npm run build
+ npm run start:prod
+ ```
+ 
+ The application will be available at `http://localhost:3000`
+ 
++#### Running with Docker Compose
++
++```bash
++# Build and start the core stack (app + Postgres + Redis)
++docker compose up --build app db redis
++
++# Optionally include Kafka/Elasticsearch by adding services
++docker compose up --build app db redis kafka zookeeper kafka-ui elasticsearch
++```
++
+ ### API Endpoints
+ 
+ #### Health & Authentication
+ - `GET /api/health` - Health check endpoint
+ - `POST /api/users` - User registration
+ - `POST /api/auth/login` - User login (returns JWT)
+ 
+ #### Issue Tracker (N2.1)
+ - `POST /api/projects` - Create project
+ - `GET /api/projects` - List projects
+ - `POST /api/projects/:id/issues` - Create issue
+ - `GET /api/projects/:id/issues` - List issues
+ - `GET /api/issues/:id` - Get issue details
+ - `PUT /api/issues/:id` - Update issue
+ - `DELETE /api/issues/:id` - Delete issue
+ - `POST /api/issues/:id/comments` - Add comment
+ - `GET /api/issues/:id/comments` - List comments
+ 
+ #### Teams & RBAC (N2.2)
+ - `POST /api/teams` - Create team
+ - `GET /api/teams` - List user's teams
+ - `GET /api/teams/:id` - Get team details
+ - `POST /api/teams/:id/members` - Add team member
+ - `GET /api/teams/:id/members` - List team members
+ - `PATCH /api/teams/:id/members/:memberId` - Update member role
+@@ -126,86 +140,92 @@ The application will be available at `http://localhost:3000`
+ - `GET /api/teams/:teamId/items` - List workspace items
+ 
+ #### Statistics (N2.3)
+ - `GET /api/stats/daily` - Get daily issue statistics
+ - `GET /api/issues/popular` - Get popular issues (cached)
+ - `GET /api/external/posts/:id` - External API example
+ 
+ #### Products & Search (N2.4)
+ - `POST /api/products` - Create product
+ - `GET /api/products/:id` - Get product
+ - `PUT /api/products/:id` - Update product
+ - `DELETE /api/products/:id` - Delete product
+ - `GET /api/search/products` - Search products (Elasticsearch)
+ - `POST /api/admin/reindex/products` - Reindex all products
+ 
+ #### Orders & Notifications (N2.5)
+ - `POST /api/orders` - Create order
+ - `GET /api/orders` - List user's orders
+ - `GET /api/orders/:id` - Get order details
+ - `PATCH /api/orders/:id/pay` - Mark order as paid
+ - `PATCH /api/orders/:id/cancel` - Cancel order
+ - `GET /api/notifications` - List user's notifications
+ 
+ ### Testing
+ 
++e2e runs default to SQLite, so Docker services are optional. Start Postgres/Redis first (e.g., `docker compose up -d db redis`) only if you want to test external services.
++
+ ```bash
+ # Unit tests
+ npm test
+ 
+ # e2e tests
+ npm run test:e2e
+ 
+ # Test coverage
+ npm run test:cov
+ ```
+ 
+ ### Environment Variables
+ 
+ Copy `.env.example` to `.env.local` and configure:
+ 
+ ```env
+ # Application
+ PORT=3000
+ NODE_ENV=development
+ 
+-# Database
++# Database (SQLite by default)
+ DATABASE_URL="file:./dev.db"
+ 
+ # JWT
+ JWT_SECRET=your-secret-key-change-in-production
+ JWT_EXPIRES_IN=1d
+ 
+ # Elasticsearch
+ ELASTICSEARCH_NODE=http://localhost:9200
+ ELASTICSEARCH_ENABLED=false  # Set to true to enable Elasticsearch
+ 
+ # Kafka
+ KAFKA_BROKERS=localhost:9092
+ KAFKA_CLIENT_ID=web-phase1-5-node
+ KAFKA_GROUP_ID=notification-consumer-group
+ KAFKA_ENABLED=true  # Set to false to disable Kafka
++
++# Redis
++REDIS_HOST=localhost
++REDIS_PORT=6379
+ ```
+ 
+ ## Project Structure
+ 
+ ```
+ web-phase1-5-node/
+   ├── prisma/
+   │   ├── schema.prisma              # Database schema
+   │   └── migrations/                # Database migrations
+   ├── src/
+   │   ├── common/
+   │   │   ├── health/                # Health check module
+   │   │   ├── prisma/                # Prisma service
+   │   │   └── filters/               # Exception filters
+   │   ├── auth/                      # Authentication (N2.1)
+   │   ├── user/                      # User management (N2.1)
+   │   ├── project/                   # Project module (N2.1)
+   │   ├── issue/                     # Issue tracker (N2.1)
+   │   ├── comment/                   # Comments (N2.1)
+   │   ├── team/                      # Team & RBAC (N2.2)
+   │   ├── stats/                     # Statistics & batch jobs (N2.3)
+   │   ├── external/                  # External API integration (N2.3)
+   │   ├── elasticsearch/             # Elasticsearch client (N2.4)
+   │   ├── product/                   # Product catalog (N2.4)
+   │   ├── search/                    # Search API (N2.4)
+diff --git a/docker-compose.yml b/docker-compose.yml
+index d9a8ac4b957dd874547481d1c75b59704406fa47..c16f0d4d2a8bbea2a59b3c7f443809bf27654be2 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -1,73 +1,126 @@
+ version: '3.8'
+ 
+ services:
++  app:
++    build: .
++    container_name: web-phase1-5-node
++    depends_on:
++      - db
++      - redis
++    environment:
++      PORT: 3000
++      NODE_ENV: production
++      DATABASE_URL: postgresql://app:app@db:5432/app?schema=public
++      REDIS_HOST: redis
++      REDIS_PORT: 6379
++      ELASTICSEARCH_NODE: http://elasticsearch:9200
++      ELASTICSEARCH_ENABLED: 'false'
++      KAFKA_BROKERS: kafka:29092
++      KAFKA_CLIENT_ID: web-phase1-5-node
++      KAFKA_GROUP_ID: notification-consumer-group
++      KAFKA_ENABLED: 'false'
++      JWT_SECRET: change-me-in-prod
++      JWT_EXPIRES_IN: 1d
++    ports:
++      - '3000:3000'
++    networks:
++      - app-network
++
++  db:
++    image: postgres:16
++    container_name: postgres
++    environment:
++      POSTGRES_USER: app
++      POSTGRES_PASSWORD: app
++      POSTGRES_DB: app
++    ports:
++      - '5432:5432'
++    volumes:
++      - postgres_data:/var/lib/postgresql/data
++    networks:
++      - app-network
++
++  redis:
++    image: redis:7
++    container_name: redis
++    ports:
++      - '6379:6379'
++    volumes:
++      - redis_data:/data
++    networks:
++      - app-network
++
+   # Zookeeper - required for Kafka
+   zookeeper:
+     image: confluentinc/cp-zookeeper:7.5.0
+     hostname: zookeeper
+     container_name: zookeeper
+     ports:
+-      - "2181:2181"
++      - '2181:2181'
+     environment:
+       ZOOKEEPER_CLIENT_PORT: 2181
+       ZOOKEEPER_TICK_TIME: 2000
+     networks:
+       - app-network
+ 
+   # Kafka broker
+   kafka:
+     image: confluentinc/cp-kafka:7.5.0
+     hostname: kafka
+     container_name: kafka
+     depends_on:
+       - zookeeper
+     ports:
+-      - "9092:9092"
+-      - "9101:9101"
++      - '9092:9092'
++      - '9101:9101'
+     environment:
+       KAFKA_BROKER_ID: 1
+       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+       KAFKA_JMX_PORT: 9101
+       KAFKA_JMX_HOSTNAME: localhost
+       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+     networks:
+       - app-network
+ 
+   # Optional: Kafka UI for easier debugging
+   kafka-ui:
+     image: provectuslabs/kafka-ui:latest
+     container_name: kafka-ui
+     depends_on:
+       - kafka
+     ports:
+-      - "8080:8080"
++      - '8080:8080'
+     environment:
+       KAFKA_CLUSTERS_0_NAME: local
+       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+     networks:
+       - app-network
+ 
+   # Optional: Elasticsearch for N2.4 (already implemented)
+   elasticsearch:
+     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+     container_name: elasticsearch
+     environment:
+       - discovery.type=single-node
+       - xpack.security.enabled=false
+-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
++      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+     ports:
+-      - "9200:9200"
+-      - "9300:9300"
++      - '9200:9200'
++      - '9300:9300'
+     networks:
+       - app-network
+ 
+ networks:
+   app-network:
+     driver: bridge
++
++volumes:
++  postgres_data:
++  redis_data:
+diff --git a/package-lock.json b/package-lock.json
+index 8b35daec3c01d67c131ecdb77e2a387cdca95e5c..d222254c7020e02a271adc122c6ca00f7e5bd2e4 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -3,50 +3,51 @@
+   "version": "1.0.0",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "web-phase1-5-node",
+       "version": "1.0.0",
+       "license": "MIT",
+       "dependencies": {
+         "@elastic/elasticsearch": "^9.2.0",
+         "@nestjs/axios": "^4.0.1",
+         "@nestjs/cache-manager": "^3.0.1",
+         "@nestjs/common": "^10.3.0",
+         "@nestjs/config": "^3.1.1",
+         "@nestjs/core": "^10.3.0",
+         "@nestjs/jwt": "^11.0.1",
+         "@nestjs/mapped-types": "^2.1.0",
+         "@nestjs/microservices": "^10.4.20",
+         "@nestjs/passport": "^11.0.5",
+         "@nestjs/platform-express": "^10.3.0",
+         "@nestjs/schedule": "^6.0.1",
+         "@prisma/client": "^5.8.0",
+         "axios": "^1.13.2",
+         "bcryptjs": "^3.0.3",
+         "cache-manager": "^7.2.5",
++        "cache-manager-redis-store": "^3.0.1",
+         "class-transformer": "^0.5.1",
+         "class-validator": "^0.14.0",
+         "kafkajs": "^2.2.4",
+         "passport": "^0.7.0",
+         "passport-jwt": "^4.0.1",
+         "reflect-metadata": "^0.1.14",
+         "rxjs": "^7.8.1"
+       },
+       "devDependencies": {
+         "@nestjs/cli": "^10.3.0",
+         "@nestjs/schematics": "^10.1.0",
+         "@nestjs/testing": "^10.3.0",
+         "@types/bcryptjs": "^2.4.6",
+         "@types/express": "^4.17.21",
+         "@types/jest": "^29.5.11",
+         "@types/node": "^20.19.25",
+         "@types/passport-jwt": "^4.0.1",
+         "@types/supertest": "^6.0.2",
+         "@typescript-eslint/eslint-plugin": "^6.17.0",
+         "@typescript-eslint/parser": "^6.17.0",
+         "eslint": "^8.56.0",
+         "eslint-config-prettier": "^9.1.0",
+         "eslint-plugin-prettier": "^5.1.2",
+         "jest": "^29.7.0",
+         "prettier": "^3.1.1",
+@@ -2251,50 +2252,115 @@
+       "devOptional": true,
+       "license": "Apache-2.0"
+     },
+     "node_modules/@prisma/fetch-engine": {
+       "version": "5.22.0",
+       "resolved": "https://registry.npmjs.org/@prisma/fetch-engine/-/fetch-engine-5.22.0.tgz",
+       "integrity": "sha512-bkrD/Mc2fSvkQBV5EpoFcZ87AvOgDxbG99488a5cexp5Ccny+UM6MAe/UFkUC0wLYD9+9befNOqGiIJhhq+HbA==",
+       "devOptional": true,
+       "license": "Apache-2.0",
+       "dependencies": {
+         "@prisma/debug": "5.22.0",
+         "@prisma/engines-version": "5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+         "@prisma/get-platform": "5.22.0"
+       }
+     },
+     "node_modules/@prisma/get-platform": {
+       "version": "5.22.0",
+       "resolved": "https://registry.npmjs.org/@prisma/get-platform/-/get-platform-5.22.0.tgz",
+       "integrity": "sha512-pHhpQdr1UPFpt+zFfnPazhulaZYCUqeIcPpJViYoq9R+D/yw4fjE+CtnsnKzPYm0ddUbeXUzjGVGIRVgPDCk4Q==",
+       "devOptional": true,
+       "license": "Apache-2.0",
+       "dependencies": {
+         "@prisma/debug": "5.22.0"
+       }
+     },
++    "node_modules/@redis/bloom": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/@redis/bloom/-/bloom-1.2.0.tgz",
++      "integrity": "sha512-HG2DFjYKbpNmVXsa0keLHp/3leGJz1mjh09f2RLGGLQZzSHpkmZWuwJbAvo3QcRY8p80m5+ZdXZdYOSBLlp7Cg==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@redis/client": "^1.0.0"
++      }
++    },
++    "node_modules/@redis/client": {
++      "version": "1.6.1",
++      "resolved": "https://registry.npmjs.org/@redis/client/-/client-1.6.1.tgz",
++      "integrity": "sha512-/KCsg3xSlR+nCK8/8ZYSknYxvXHwubJrU82F3Lm1Fp6789VQ0/3RJKfsmRXjqfaTA++23CvC3hqmqe/2GEt6Kw==",
++      "license": "MIT",
++      "dependencies": {
++        "cluster-key-slot": "1.1.2",
++        "generic-pool": "3.9.0",
++        "yallist": "4.0.0"
++      },
++      "engines": {
++        "node": ">=14"
++      }
++    },
++    "node_modules/@redis/client/node_modules/yallist": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz",
++      "integrity": "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==",
++      "license": "ISC"
++    },
++    "node_modules/@redis/graph": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/@redis/graph/-/graph-1.1.1.tgz",
++      "integrity": "sha512-FEMTcTHZozZciLRl6GiiIB4zGm5z5F3F6a6FZCyrfxdKOhFlGkiAqlexWMBzCi4DcRoyiOsuLfW+cjlGWyExOw==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@redis/client": "^1.0.0"
++      }
++    },
++    "node_modules/@redis/json": {
++      "version": "1.0.7",
++      "resolved": "https://registry.npmjs.org/@redis/json/-/json-1.0.7.tgz",
++      "integrity": "sha512-6UyXfjVaTBTJtKNG4/9Z8PSpKE6XgSyEb8iwaqDcy+uKrd/DGYHTWkUdnQDyzm727V7p21WUMhsqz5oy65kPcQ==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@redis/client": "^1.0.0"
++      }
++    },
++    "node_modules/@redis/search": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/@redis/search/-/search-1.2.0.tgz",
++      "integrity": "sha512-tYoDBbtqOVigEDMAcTGsRlMycIIjwMCgD8eR2t0NANeQmgK/lvxNAvYyb6bZDD4frHRhIHkJu2TBRvB0ERkOmw==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@redis/client": "^1.0.0"
++      }
++    },
++    "node_modules/@redis/time-series": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/@redis/time-series/-/time-series-1.1.0.tgz",
++      "integrity": "sha512-c1Q99M5ljsIuc4YdaCwfUEXsofakb9c8+Zse2qxTadu8TalLXuAESzLvFAvNVbkmSlvlzIQOLpBCmWI9wTOt+g==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@redis/client": "^1.0.0"
++      }
++    },
+     "node_modules/@sinclair/typebox": {
+       "version": "0.27.8",
+       "resolved": "https://registry.npmjs.org/@sinclair/typebox/-/typebox-0.27.8.tgz",
+       "integrity": "sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==",
+       "dev": true,
+       "license": "MIT"
+     },
+     "node_modules/@sinonjs/commons": {
+       "version": "3.0.1",
+       "resolved": "https://registry.npmjs.org/@sinonjs/commons/-/commons-3.0.1.tgz",
+       "integrity": "sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==",
+       "dev": true,
+       "license": "BSD-3-Clause",
+       "dependencies": {
+         "type-detect": "4.0.8"
+       }
+     },
+     "node_modules/@sinonjs/fake-timers": {
+       "version": "10.3.0",
+       "resolved": "https://registry.npmjs.org/@sinonjs/fake-timers/-/fake-timers-10.3.0.tgz",
+       "integrity": "sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==",
+       "dev": true,
+       "license": "BSD-3-Clause",
+       "dependencies": {
+         "@sinonjs/commons": "^3.0.0"
+@@ -3810,50 +3876,62 @@
+         "streamsearch": "^1.1.0"
+       },
+       "engines": {
+         "node": ">=10.16.0"
+       }
+     },
+     "node_modules/bytes": {
+       "version": "3.1.2",
+       "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
+       "integrity": "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==",
+       "license": "MIT",
+       "engines": {
+         "node": ">= 0.8"
+       }
+     },
+     "node_modules/cache-manager": {
+       "version": "7.2.5",
+       "resolved": "https://registry.npmjs.org/cache-manager/-/cache-manager-7.2.5.tgz",
+       "integrity": "sha512-Y5LF7olTrcKJn1NoKiWPOvjEiO5DfDVPxqZHETCRMaliC60KBNb4Ge/vEYep5TyaqpXvnpnPPo8zauCe6UzZwA==",
+       "license": "MIT",
+       "dependencies": {
+         "@cacheable/utils": "^2.3.0",
+         "keyv": "^5.5.4"
+       }
+     },
++    "node_modules/cache-manager-redis-store": {
++      "version": "3.0.1",
++      "resolved": "https://registry.npmjs.org/cache-manager-redis-store/-/cache-manager-redis-store-3.0.1.tgz",
++      "integrity": "sha512-o560kw+dFqusC9lQJhcm6L2F2fMKobJ5af+FoR2PdnMVdpQ3f3Bz6qzvObTGyvoazQJxjQNWgMQeChP4vRTuXQ==",
++      "license": "MIT",
++      "dependencies": {
++        "redis": "^4.3.1"
++      },
++      "engines": {
++        "node": ">= 16.18.0"
++      }
++    },
+     "node_modules/call-bind": {
+       "version": "1.0.8",
+       "resolved": "https://registry.npmjs.org/call-bind/-/call-bind-1.0.8.tgz",
+       "integrity": "sha512-oKlSFMcMwpUg2ednkhQ454wfWiU/ul3CkJe/PEHcTKuiX6RpbehUiFMXu13HalGZxfUwCQzZG747YXBn1im9ww==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+         "call-bind-apply-helpers": "^1.0.0",
+         "es-define-property": "^1.0.0",
+         "get-intrinsic": "^1.2.4",
+         "set-function-length": "^1.2.2"
+       },
+       "engines": {
+         "node": ">= 0.4"
+       },
+       "funding": {
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
+     "node_modules/call-bind-apply-helpers": {
+       "version": "1.0.2",
+       "resolved": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz",
+       "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==",
+       "license": "MIT",
+       "dependencies": {
+@@ -4117,50 +4195,59 @@
+       "integrity": "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+         "ansi-styles": "^4.0.0",
+         "string-width": "^4.1.0",
+         "strip-ansi": "^6.0.0"
+       },
+       "engines": {
+         "node": ">=10"
+       },
+       "funding": {
+         "url": "https://github.com/chalk/wrap-ansi?sponsor=1"
+       }
+     },
+     "node_modules/clone": {
+       "version": "1.0.4",
+       "resolved": "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz",
+       "integrity": "sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=0.8"
+       }
+     },
++    "node_modules/cluster-key-slot": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz",
++      "integrity": "sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">=0.10.0"
++      }
++    },
+     "node_modules/co": {
+       "version": "4.6.0",
+       "resolved": "https://registry.npmjs.org/co/-/co-4.6.0.tgz",
+       "integrity": "sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "iojs": ">= 1.0.0",
+         "node": ">= 0.12.0"
+       }
+     },
+     "node_modules/collect-v8-coverage": {
+       "version": "1.0.3",
+       "resolved": "https://registry.npmjs.org/collect-v8-coverage/-/collect-v8-coverage-1.0.3.tgz",
+       "integrity": "sha512-1L5aqIkwPfiodaMgQunkF1zRhNqifHBmtbbbxcr6yVxxBnliw4TDOW6NxpO8DJLgJ16OT+Y4ztZqP6p/FtXnAw==",
+       "dev": true,
+       "license": "MIT"
+     },
+     "node_modules/color-convert": {
+       "version": "2.0.1",
+       "resolved": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz",
+       "integrity": "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==",
+       "license": "MIT",
+       "dependencies": {
+         "color-name": "~1.1.4"
+@@ -5668,50 +5755,59 @@
+     },
+     "node_modules/fsevents": {
+       "version": "2.3.3",
+       "resolved": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz",
+       "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
+       "dev": true,
+       "hasInstallScript": true,
+       "license": "MIT",
+       "optional": true,
+       "os": [
+         "darwin"
+       ],
+       "engines": {
+         "node": "^8.16.0 || ^10.6.0 || >=11.0.0"
+       }
+     },
+     "node_modules/function-bind": {
+       "version": "1.1.2",
+       "resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz",
+       "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==",
+       "license": "MIT",
+       "funding": {
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/generic-pool": {
++      "version": "3.9.0",
++      "resolved": "https://registry.npmjs.org/generic-pool/-/generic-pool-3.9.0.tgz",
++      "integrity": "sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 4"
++      }
++    },
+     "node_modules/gensync": {
+       "version": "1.0.0-beta.2",
+       "resolved": "https://registry.npmjs.org/gensync/-/gensync-1.0.0-beta.2.tgz",
+       "integrity": "sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=6.9.0"
+       }
+     },
+     "node_modules/get-caller-file": {
+       "version": "2.0.5",
+       "resolved": "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz",
+       "integrity": "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==",
+       "dev": true,
+       "license": "ISC",
+       "engines": {
+         "node": "6.* || 8.* || >= 10.*"
+       }
+     },
+     "node_modules/get-intrinsic": {
+       "version": "1.3.0",
+       "resolved": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
+       "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==",
+       "license": "MIT",
+@@ -8524,50 +8620,67 @@
+       "version": "3.6.0",
+       "resolved": "https://registry.npmjs.org/readdirp/-/readdirp-3.6.0.tgz",
+       "integrity": "sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+         "picomatch": "^2.2.1"
+       },
+       "engines": {
+         "node": ">=8.10.0"
+       }
+     },
+     "node_modules/readdirp/node_modules/picomatch": {
+       "version": "2.3.1",
+       "resolved": "https://registry.npmjs.org/picomatch/-/picomatch-2.3.1.tgz",
+       "integrity": "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=8.6"
+       },
+       "funding": {
+         "url": "https://github.com/sponsors/jonschlinkert"
+       }
+     },
++    "node_modules/redis": {
++      "version": "4.7.1",
++      "resolved": "https://registry.npmjs.org/redis/-/redis-4.7.1.tgz",
++      "integrity": "sha512-S1bJDnqLftzHXHP8JsT5II/CtHWQrASX5K96REjWjlmWKrviSOLWmM7QnRLstAWsu1VBBV1ffV6DzCvxNP0UJQ==",
++      "license": "MIT",
++      "workspaces": [
++        "./packages/*"
++      ],
++      "dependencies": {
++        "@redis/bloom": "1.2.0",
++        "@redis/client": "1.6.1",
++        "@redis/graph": "1.1.1",
++        "@redis/json": "1.0.7",
++        "@redis/search": "1.2.0",
++        "@redis/time-series": "1.1.0"
++      }
++    },
+     "node_modules/reflect-metadata": {
+       "version": "0.1.14",
+       "resolved": "https://registry.npmjs.org/reflect-metadata/-/reflect-metadata-0.1.14.tgz",
+       "integrity": "sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==",
+       "license": "Apache-2.0"
+     },
+     "node_modules/repeat-string": {
+       "version": "1.6.1",
+       "resolved": "https://registry.npmjs.org/repeat-string/-/repeat-string-1.6.1.tgz",
+       "integrity": "sha512-PV0dzCYDNfRi1jCDbJzpW7jNNDRuCOG/jI5ctQcGKt/clZD+YcPS3yIlWuTJMmESC8aevCFmWJy5wjAFgNqN6w==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=0.10"
+       }
+     },
+     "node_modules/require-directory": {
+       "version": "2.1.1",
+       "resolved": "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz",
+       "integrity": "sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==",
+       "dev": true,
+       "license": "MIT",
+       "engines": {
+         "node": ">=0.10.0"
+       }
+diff --git a/package.json b/package.json
+index 00cc61ceb206ef380a7aae00f01438b922169a7d..aa4e824bc217d516b05f8c66055a3593cd69bd3d 100644
+--- a/package.json
++++ b/package.json
+@@ -17,50 +17,51 @@
+     "test:watch": "jest --watch",
+     "test:cov": "jest --coverage",
+     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+     "test:e2e": "jest --config ./test/jest-e2e.json",
+     "prisma:generate": "prisma generate",
+     "prisma:migrate": "prisma migrate dev",
+     "prisma:studio": "prisma studio"
+   },
+   "dependencies": {
+     "@elastic/elasticsearch": "^9.2.0",
+     "@nestjs/axios": "^4.0.1",
+     "@nestjs/cache-manager": "^3.0.1",
+     "@nestjs/common": "^10.3.0",
+     "@nestjs/config": "^3.1.1",
+     "@nestjs/core": "^10.3.0",
+     "@nestjs/jwt": "^11.0.1",
+     "@nestjs/mapped-types": "^2.1.0",
+     "@nestjs/microservices": "^10.4.20",
+     "@nestjs/passport": "^11.0.5",
+     "@nestjs/platform-express": "^10.3.0",
+     "@nestjs/schedule": "^6.0.1",
+     "@prisma/client": "^5.8.0",
+     "axios": "^1.13.2",
+     "bcryptjs": "^3.0.3",
+     "cache-manager": "^7.2.5",
++    "cache-manager-redis-store": "^3.0.1",
+     "class-transformer": "^0.5.1",
+     "class-validator": "^0.14.0",
+     "kafkajs": "^2.2.4",
+     "passport": "^0.7.0",
+     "passport-jwt": "^4.0.1",
+     "reflect-metadata": "^0.1.14",
+     "rxjs": "^7.8.1"
+   },
+   "devDependencies": {
+     "@nestjs/cli": "^10.3.0",
+     "@nestjs/schematics": "^10.1.0",
+     "@nestjs/testing": "^10.3.0",
+     "@types/bcryptjs": "^2.4.6",
+     "@types/express": "^4.17.21",
+     "@types/jest": "^29.5.11",
+     "@types/node": "^20.19.25",
+     "@types/passport-jwt": "^4.0.1",
+     "@types/supertest": "^6.0.2",
+     "@typescript-eslint/eslint-plugin": "^6.17.0",
+     "@typescript-eslint/parser": "^6.17.0",
+     "eslint": "^8.56.0",
+     "eslint-config-prettier": "^9.1.0",
+     "eslint-plugin-prettier": "^5.1.2",
+     "jest": "^29.7.0",
+     "prettier": "^3.1.1",
+diff --git a/prisma/migrations/20250123000000_add_issue_tracker_models/migration.sql b/prisma/migrations/20250123000000_add_issue_tracker_models/migration.sql
+index 2f11d767863867bcf8074d6211e605584293131f..eb6aa6f382394f67c457ab03e0fe3f42f683ed9b 100644
+--- a/prisma/migrations/20250123000000_add_issue_tracker_models/migration.sql
++++ b/prisma/migrations/20250123000000_add_issue_tracker_models/migration.sql
+@@ -1,65 +1,83 @@
+ -- CreateTable
+ CREATE TABLE "User" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "email" TEXT NOT NULL,
+     "passwordHash" TEXT NOT NULL,
+     "nickname" TEXT NOT NULL,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "Project" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "name" TEXT NOT NULL,
+     "description" TEXT,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "Issue" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "projectId" INTEGER NOT NULL,
+     "reporterId" INTEGER NOT NULL,
+     "assigneeId" INTEGER,
+     "title" TEXT NOT NULL,
+     "description" TEXT,
+     "status" TEXT NOT NULL DEFAULT 'OPEN',
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    "updatedAt" DATETIME NOT NULL,
+-    CONSTRAINT "Issue_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "Issue_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "Issue_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Issue_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "Comment" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "issueId" INTEGER NOT NULL,
+     "authorId" INTEGER NOT NULL,
+     "content" TEXT NOT NULL,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    "updatedAt" DATETIME NOT NULL,
+-    CONSTRAINT "Comment_issueId_fkey" FOREIGN KEY ("issueId") REFERENCES "Issue" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateIndex
+ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+ 
+ -- CreateIndex
+ CREATE INDEX "Issue_projectId_idx" ON "Issue"("projectId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Issue_reporterId_idx" ON "Issue"("reporterId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Issue_assigneeId_idx" ON "Issue"("assigneeId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Issue_status_idx" ON "Issue"("status");
+ 
+ -- CreateIndex
+ CREATE INDEX "Comment_issueId_idx" ON "Comment"("issueId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Comment_authorId_idx" ON "Comment"("authorId");
++
++-- AddForeignKey
++ALTER TABLE "Issue" ADD CONSTRAINT "Issue_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Issue" ADD CONSTRAINT "Issue_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Issue" ADD CONSTRAINT "Issue_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Comment" ADD CONSTRAINT "Comment_issueId_fkey" FOREIGN KEY ("issueId") REFERENCES "Issue"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Comment" ADD CONSTRAINT "Comment_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+diff --git a/prisma/migrations/20250123120000_add_team_rbac_models/migration.sql b/prisma/migrations/20250123120000_add_team_rbac_models/migration.sql
+index 942914ce06ea134e38f99522ae06249075126ad6..7634dc351912b223a3cce8e667e0d94da48ae73f 100644
+--- a/prisma/migrations/20250123120000_add_team_rbac_models/migration.sql
++++ b/prisma/migrations/20250123120000_add_team_rbac_models/migration.sql
+@@ -1,45 +1,59 @@
+ -- CreateTable
+ CREATE TABLE "Team" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "name" TEXT NOT NULL,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "TeamMember" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "teamId" INTEGER NOT NULL,
+     "userId" INTEGER NOT NULL,
+     "role" TEXT NOT NULL,
+-    "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    CONSTRAINT "TeamMember_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "TeamMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "TeamMember_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "WorkspaceItem" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "teamId" INTEGER NOT NULL,
+     "title" TEXT NOT NULL,
+     "content" TEXT,
+     "createdBy" INTEGER NOT NULL,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    "updatedAt" DATETIME NOT NULL,
+-    CONSTRAINT "WorkspaceItem_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "WorkspaceItem_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "WorkspaceItem_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateIndex
+ CREATE INDEX "TeamMember_teamId_idx" ON "TeamMember"("teamId");
+ 
+ -- CreateIndex
+ CREATE INDEX "TeamMember_userId_idx" ON "TeamMember"("userId");
+ 
+ -- CreateIndex
+ CREATE UNIQUE INDEX "TeamMember_teamId_userId_key" ON "TeamMember"("teamId", "userId");
+ 
+ -- CreateIndex
+ CREATE INDEX "WorkspaceItem_teamId_idx" ON "WorkspaceItem"("teamId");
+ 
+ -- CreateIndex
+ CREATE INDEX "WorkspaceItem_createdBy_idx" ON "WorkspaceItem"("createdBy");
++
++-- AddForeignKey
++ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "WorkspaceItem" ADD CONSTRAINT "WorkspaceItem_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "WorkspaceItem" ADD CONSTRAINT "WorkspaceItem_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+diff --git a/prisma/migrations/20250123150000_add_n2_3_stats/migration.sql b/prisma/migrations/20250123150000_add_n2_3_stats/migration.sql
+index faf6864b733fdab4af2cc7d1ccfc9d2950a3fe82..30ecc112d8a4b7daa1e1f9a3aabb60115a00814e 100644
+--- a/prisma/migrations/20250123150000_add_n2_3_stats/migration.sql
++++ b/prisma/migrations/20250123150000_add_n2_3_stats/migration.sql
+@@ -1,20 +1,20 @@
+ -- CreateTable
+ CREATE TABLE "DailyIssueStats" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "date" TEXT NOT NULL,
+     "createdCount" INTEGER NOT NULL DEFAULT 0,
+     "resolvedCount" INTEGER NOT NULL DEFAULT 0,
+     "commentCount" INTEGER NOT NULL DEFAULT 0,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "DailyIssueStats_pkey" PRIMARY KEY ("id")
+ );
+ 
+--- AlterTable: Add viewCount to Issue
+--- SQLite doesn't support ALTER COLUMN, so we need to check if column exists
+--- This is a simplified version assuming fresh migration
++-- AlterTable
+ ALTER TABLE "Issue" ADD COLUMN "viewCount" INTEGER NOT NULL DEFAULT 0;
+ 
+ -- CreateIndex
+ CREATE UNIQUE INDEX "DailyIssueStats_date_key" ON "DailyIssueStats"("date");
+ 
+ -- CreateIndex
+ CREATE INDEX "DailyIssueStats_date_idx" ON "DailyIssueStats"("date");
+diff --git a/prisma/migrations/20250123180000_add_product_model/migration.sql b/prisma/migrations/20250123180000_add_product_model/migration.sql
+index 4fd46b4de8c00f6e02832d5f41c71e0fff7afd6f..b6eb1583176cc41d89f94a7e2c37bb7013fdd899 100644
+--- a/prisma/migrations/20250123180000_add_product_model/migration.sql
++++ b/prisma/migrations/20250123180000_add_product_model/migration.sql
+@@ -1,24 +1,26 @@
+ -- CreateTable
+ CREATE TABLE "Product" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "name" TEXT NOT NULL,
+     "description" TEXT,
+     "category" TEXT NOT NULL,
+     "brand" TEXT NOT NULL,
+-    "price" REAL NOT NULL,
++    "price" DOUBLE PRECISION NOT NULL,
+     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    "updatedAt" DATETIME NOT NULL
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateIndex
+ CREATE INDEX "Product_category_idx" ON "Product"("category");
+ 
+ -- CreateIndex
+ CREATE INDEX "Product_brand_idx" ON "Product"("brand");
+ 
+ -- CreateIndex
+ CREATE INDEX "Product_status_idx" ON "Product"("status");
+ 
+ -- CreateIndex
+ CREATE INDEX "Product_price_idx" ON "Product"("price");
+diff --git a/prisma/migrations/20250123210000_add_order_notification_models/migration.sql b/prisma/migrations/20250123210000_add_order_notification_models/migration.sql
+index 464e23e6cacad5222602164108421bcc417d4644..c9403d3e1aecef312222630f2e8e28a022aead12 100644
+--- a/prisma/migrations/20250123210000_add_order_notification_models/migration.sql
++++ b/prisma/migrations/20250123210000_add_order_notification_models/migration.sql
+@@ -1,48 +1,62 @@
+ -- CreateTable
+ CREATE TABLE "Order" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "userId" INTEGER NOT NULL,
+-    "totalAmount" REAL NOT NULL,
++    "totalAmount" DOUBLE PRECISION NOT NULL,
+     "status" TEXT NOT NULL DEFAULT 'PENDING',
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "OrderItem" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "orderId" INTEGER NOT NULL,
+     "productId" INTEGER NOT NULL,
+     "quantity" INTEGER NOT NULL,
+-    "price" REAL NOT NULL,
+-    CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+-    CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "price" DOUBLE PRECISION NOT NULL,
++
++    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateTable
+ CREATE TABLE "Notification" (
+-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    "id" SERIAL NOT NULL,
+     "userId" INTEGER NOT NULL,
+     "type" TEXT NOT NULL,
+     "message" TEXT NOT NULL,
+-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-    CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++
++    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+ );
+ 
+ -- CreateIndex
+ CREATE INDEX "Order_userId_idx" ON "Order"("userId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Order_status_idx" ON "Order"("status");
+ 
+ -- CreateIndex
+ CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
+ 
+ -- CreateIndex
+ CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Notification_userId_idx" ON "Notification"("userId");
+ 
+ -- CreateIndex
+ CREATE INDEX "Notification_type_idx" ON "Notification"("type");
++
++-- AddForeignKey
++ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+diff --git a/prisma/migrations/migration_lock.toml b/prisma/migrations/migration_lock.toml
+index 6fcf33dafba6be8f0c63843e053eebb6b95311da..99e4f2009079447bfe87fb47e52dcb038d1aec08 100644
+--- a/prisma/migrations/migration_lock.toml
++++ b/prisma/migrations/migration_lock.toml
+@@ -1,3 +1,3 @@
+ # Please do not edit this file manually
+ # It should be added in your version-control system (i.e. Git)
+-provider = "sqlite"
++provider = "postgresql"
+diff --git a/src/app.module.ts b/src/app.module.ts
+index 43d461da7d79c6bfaea1d7746a031ef0b5890fbc..24aa3fc9b0380fdb06a2de0053bd3ec0b9704e59 100644
+--- a/src/app.module.ts
++++ b/src/app.module.ts
+@@ -1,57 +1,82 @@
+-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+-import { ConfigModule } from '@nestjs/config';
++import { ClassSerializerInterceptor, Logger, Module } from '@nestjs/common';
++import { ConfigModule, ConfigService } from '@nestjs/config';
+ import { APP_INTERCEPTOR } from '@nestjs/core';
+ import { CacheModule } from '@nestjs/cache-manager';
++import { redisStore } from 'cache-manager-redis-store';
+ import { HealthController } from './common/health/health.controller';
+ import { PrismaModule } from './common/prisma/prisma.module';
+ import { UserModule } from './user/user.module';
+ import { AuthModule } from './auth/auth.module';
+ import { ProjectModule } from './project/project.module';
+ import { IssueModule } from './issue/issue.module';
+ import { CommentModule } from './comment/comment.module';
+ import { TeamModule } from './team/team.module';
+ import { StatsModule } from './stats/stats.module';
+ import { ExternalModule } from './external/external.module';
+ import { ProductModule } from './product/product.module';
+ import { SearchModule } from './search/search.module';
+ import { AdminModule } from './admin/admin.module';
+ import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
+ import { KafkaModule } from './kafka/kafka.module';
+ import { OrderModule } from './order/order.module';
+ import { NotificationModule } from './notification/notification.module';
+ 
+ @Module({
+   imports: [
+     ConfigModule.forRoot({
+       isGlobal: true,
+-      envFilePath: ['.env.local', '.env'],
++      envFilePath:
++        process.env.NODE_ENV === 'test'
++          ? ['.env.test', '.env']
++          : ['.env.local', '.env'],
+     }),
+-    CacheModule.register({
++    CacheModule.registerAsync({
+       isGlobal: true,
+-      ttl: 300, // 5 minutes in seconds
+-      max: 100, // Maximum number of items in cache
++      inject: [ConfigService],
++      useFactory: async (configService: ConfigService) => {
++        const logger = new Logger(AppModule.name);
++        const host = configService.get<string>('REDIS_HOST');
++        const port = Number(configService.get<string>('REDIS_PORT')) || 6379;
++
++        if (!host) {
++          logger.warn('REDIS_HOST not set. Falling back to in-memory cache store.');
++          return {
++            ttl: 300,
++          };
++        }
++
++        return {
++          store: await redisStore({
++            socket: {
++              host,
++              port,
++            },
++          }),
++          ttl: 300,
++        };
++      },
+     }),
+     PrismaModule,
+     UserModule,
+     AuthModule,
+     ProjectModule,
+     IssueModule,
+     CommentModule,
+     TeamModule,
+     StatsModule,
+     ExternalModule,
+     ElasticsearchModule,
+     ProductModule,
+     SearchModule,
+     AdminModule,
+     KafkaModule,
+     OrderModule,
+     NotificationModule,
+   ],
+   controllers: [HealthController],
+   providers: [
+     {
+       provide: APP_INTERCEPTOR,
+       useClass: ClassSerializerInterceptor,
+     },
+   ],
+diff --git a/src/common/prisma/prisma.service.ts b/src/common/prisma/prisma.service.ts
+index 9bc159e130208a88f977d5ac3062c594fb16fa0a..3a543cda4f59ccd7a21915510f13b9ed06da88a5 100644
+--- a/src/common/prisma/prisma.service.ts
++++ b/src/common/prisma/prisma.service.ts
+@@ -1,28 +1,61 @@
+ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+ import { PrismaClient } from '@prisma/client';
+ 
+ @Injectable()
+ export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+   async onModuleInit() {
+     await this.$connect();
+   }
+ 
+   async onModuleDestroy() {
+     await this.$disconnect();
+   }
+ 
+   async cleanDatabase() {
+     // For testing purposes
+     if (process.env.NODE_ENV !== 'test') {
+       throw new Error('cleanDatabase should only be called in test environment');
+     }
+ 
+-    const tables = await this.$queryRaw<Array<{ name: string }>>`
+-      SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';
++    const databaseUrl = process.env.DATABASE_URL ?? '';
++
++    // SQLite cleanup for in-memory/file-based tests
++    if (databaseUrl.startsWith('file:')) {
++      const tables = await this.$queryRaw<Array<{ name: string }>>`
++        SELECT name
++        FROM sqlite_master
++        WHERE type = 'table'
++          AND name NOT LIKE 'sqlite_%';
++      `;
++
++      if (!tables.length) {
++        return;
++      }
++
++      await this.$executeRawUnsafe('PRAGMA foreign_keys = OFF;');
++      for (const { name } of tables) {
++        await this.$executeRawUnsafe(`DELETE FROM "${name}";`);
++      }
++
++      // Reset autoincrement sequences
++      await this.$executeRawUnsafe('DELETE FROM sqlite_sequence;').catch(() => undefined);
++      await this.$executeRawUnsafe('PRAGMA foreign_keys = ON;');
++      return;
++    }
++
++    // Default Postgres cleanup
++    const tables = await this.$queryRaw<Array<{ tablename: string }>>`
++      SELECT tablename
++      FROM pg_tables
++      WHERE schemaname = 'public'
++        AND tablename NOT IN ('_prisma_migrations');
+     `;
+ 
+-    for (const { name } of tables) {
+-      await this.$executeRawUnsafe(`DELETE FROM "${name}";`);
++    if (!tables.length) {
++      return;
+     }
++
++    const tableNames = tables.map(({ tablename }) => `"${tablename}"`).join(', ');
++    await this.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`);
+   }
+ }
+diff --git a/src/external/external.service.ts b/src/external/external.service.ts
+index f219603f56d6a239f62c1e4f81bdc9a9c70d6dbf..d89d87722ce0bec5d0a5fa5fdbdef30b2ddacac5 100644
+--- a/src/external/external.service.ts
++++ b/src/external/external.service.ts
+@@ -1,112 +1,132 @@
+-import { Injectable, Logger } from '@nestjs/common';
++import { CACHE_MANAGER } from '@nestjs/cache-manager';
++import { Inject, Injectable, Logger } from '@nestjs/common';
++import { Cache } from 'cache-manager';
+ import { HttpService } from '@nestjs/axios';
+ import { AxiosError } from 'axios';
+ import { catchError, firstValueFrom, retry, timeout } from 'rxjs';
+ 
+ export interface ExternalDataResponse {
+   id: number;
+   title: string;
+   body: string;
+   userId: number;
+ }
+ 
+ @Injectable()
+ export class ExternalService {
+   private readonly logger = new Logger(ExternalService.name);
+   private readonly TIMEOUT_MS = 5000; // 5 seconds
+   private readonly MAX_RETRIES = 3;
+   private readonly EXTERNAL_API_URL = 'https://jsonplaceholder.typicode.com';
+ 
+-  constructor(private httpService: HttpService) {}
++  constructor(
++    private httpService: HttpService,
++    @Inject(CACHE_MANAGER) private cacheManager: Cache,
++  ) {}
+ 
+   /**
+    * Fetch example data from external API with timeout and retry logic
+    */
+   async fetchExampleData(): Promise<ExternalDataResponse[]> {
++    const cacheKey = 'external:posts:v1';
++    const cached = await this.cacheManager.get<ExternalDataResponse[]>(cacheKey);
++    if (cached) {
++      return cached;
++    }
++
+     const url = `${this.EXTERNAL_API_URL}/posts`;
+ 
+     this.logger.log(`Fetching data from external API: ${url}`);
+ 
+     try {
+       const observable = this.httpService.get<ExternalDataResponse[]>(url).pipe(
+         timeout(this.TIMEOUT_MS),
+         retry({
+           count: this.MAX_RETRIES,
+           delay: (error, retryCount) => {
+             this.logger.warn(
+               `Request failed (attempt ${retryCount}/${this.MAX_RETRIES}): ${error.message}`,
+             );
+             // Exponential backoff: 1s, 2s, 4s
+             const delayMs = Math.pow(2, retryCount - 1) * 1000;
+             return new Promise((resolve) => setTimeout(resolve, delayMs));
+           },
+         }),
+         catchError((error: AxiosError) => {
+           this.logger.error(
+             `External API call failed after ${this.MAX_RETRIES} retries: ${error.message}`,
+             error.stack,
+           );
+           throw error;
+         }),
+       );
+ 
+       const response = await firstValueFrom(observable);
+       this.logger.log(`Successfully fetched ${response.data.length} items from external API`);
+ 
+       // Return first 10 items
+-      return response.data.slice(0, 10);
++      const items = response.data.slice(0, 10);
++      await this.cacheManager.set(cacheKey, items, 300);
++      return items;
+     } catch (error) {
+       this.logger.error('External API call failed, returning fallback response', error.stack);
+ 
+       // Fallback response
+       return [
+         {
+           id: -1,
+           title: 'Fallback Data',
+           body: 'The external API is currently unavailable. This is a fallback response.',
+           userId: 0,
+         },
+       ];
+     }
+   }
+ 
+   /**
+    * Fetch a single post by ID
+    */
+   async fetchPostById(id: number): Promise<ExternalDataResponse | null> {
++    const cacheKey = `external:post:v1:${id}`;
++    const cached = await this.cacheManager.get<ExternalDataResponse>(cacheKey);
++    if (cached) {
++      return cached;
++    }
++
+     const url = `${this.EXTERNAL_API_URL}/posts/${id}`;
+ 
+     this.logger.log(`Fetching post ${id} from external API`);
+ 
+     try {
+       const observable = this.httpService.get<ExternalDataResponse>(url).pipe(
+         timeout(this.TIMEOUT_MS),
+         retry({
+           count: this.MAX_RETRIES,
+           delay: (error, retryCount) => {
+             this.logger.warn(
+               `Request failed (attempt ${retryCount}/${this.MAX_RETRIES}): ${error.message}`,
+             );
+             const delayMs = Math.pow(2, retryCount - 1) * 1000;
+             return new Promise((resolve) => setTimeout(resolve, delayMs));
+           },
+         }),
+         catchError((error: AxiosError) => {
+           this.logger.error(
+             `External API call failed after ${this.MAX_RETRIES} retries: ${error.message}`,
+             error.stack,
+           );
+           throw error;
+         }),
+       );
+ 
+       const response = await firstValueFrom(observable);
+       this.logger.log(`Successfully fetched post ${id} from external API`);
+ 
++      await this.cacheManager.set(cacheKey, response.data, 300);
+       return response.data;
+     } catch (error) {
+       this.logger.error(`Failed to fetch post ${id}, returning null`, error.stack);
+       return null;
+     }
+   }
+ }
+diff --git a/src/issue/issue.service.ts b/src/issue/issue.service.ts
+index 616bdaf828ff69ba50d457cc234347326a5545c7..560755cc5f156a3555ad75cfed5c4a7605569996 100644
+--- a/src/issue/issue.service.ts
++++ b/src/issue/issue.service.ts
+@@ -136,92 +136,92 @@ export class IssueService {
+       },
+     });
+ 
+     return this.mapToResponse(issue);
+   }
+ 
+   async delete(id: number): Promise<void> {
+     const issue = await this.prisma.issue.findUnique({
+       where: { id },
+     });
+ 
+     if (!issue) {
+       throw new NotFoundException('Issue', id);
+     }
+ 
+     await this.prisma.issue.delete({
+       where: { id },
+     });
+   }
+ 
+   /**
+    * N2.3: Get popular issues with caching
+    * Popular = highest (viewCount + commentCount) in last 7 days
+    */
+   async findPopular(): Promise<IssueResponseDto[]> {
+-    const cacheKey = 'popular_issues';
++    const cacheKey = 'popular_issues:v1';
+ 
+     // Try to get from cache
+     const cached = await this.cacheManager.get<IssueResponseDto[]>(cacheKey);
+     if (cached) {
+       return cached;
+     }
+ 
+     // Calculate date 7 days ago
+     const sevenDaysAgo = new Date();
+     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+ 
+     // Fetch popular issues from database
+     // Since we need viewCount + commentCount, we'll do it in application layer
+     const recentIssues = await this.prisma.issue.findMany({
+       where: {
+         createdAt: {
+           gte: sevenDaysAgo,
+         },
+       },
+       include: {
+         reporter: true,
+         assignee: true,
+         comments: true,
+       },
+     });
+ 
+     // Calculate popularity score and sort
+     const issuesWithScore = recentIssues.map((issue) => ({
+       issue,
+       score: issue.viewCount + issue.comments.length,
+     }));
+ 
+     issuesWithScore.sort((a, b) => b.score - a.score);
+ 
+     // Take top 10
+     const popularIssues = issuesWithScore
+       .slice(0, 10)
+       .map((item) => this.mapToResponse(item.issue));
+ 
+     // Cache for 5 minutes (300 seconds, already configured globally)
+-    await this.cacheManager.set(cacheKey, popularIssues);
++    await this.cacheManager.set(cacheKey, popularIssues, 300);
+ 
+     return popularIssues;
+   }
+ 
+   /**
+    * N2.3: Increment view count when issue is viewed
+    */
+   async incrementViewCount(id: number): Promise<void> {
+     await this.prisma.issue.update({
+       where: { id },
+       data: {
+         viewCount: {
+           increment: 1,
+         },
+       },
+     });
+   }
+ 
+   private mapToResponse(issue: any): IssueResponseDto {
+     return new IssueResponseDto({
+       id: issue.id,
+       projectId: issue.projectId,
+       reporterId: issue.reporterId,
+       assigneeId: issue.assigneeId,
+       title: issue.title,
+diff --git a/src/types/cache-manager-redis-store.d.ts b/src/types/cache-manager-redis-store.d.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4417c84e7b71d955ffd0fe45e2a682665b91c8c
+--- /dev/null
++++ b/src/types/cache-manager-redis-store.d.ts
+@@ -0,0 +1,7 @@
++declare module 'cache-manager-redis-store' {
++  import { CacheStoreFactory, CacheStore } from 'cache-manager';
++
++  const redisStore: CacheStoreFactory | (() => CacheStore);
++  export { redisStore };
++  export default redisStore;
++}
+diff --git a/test/utils/test-db.ts b/test/utils/test-db.ts
+index 76adf0176f3589647000d1d1430794df1761c479..0e2a40649e3afe7e991aadd168a41dbe58b24ed6 100644
+--- a/test/utils/test-db.ts
++++ b/test/utils/test-db.ts
+@@ -1,180 +1,145 @@
+ import { PrismaService } from '../../src/common/prisma/prisma.service';
+ 
+ /**
+- * Apply minimal migrations for in-memory SQLite used in e2e tests.
+- * Creates tables and indexes that mirror the Prisma schema so tests
+- * can run without invoking prisma migrate/db push.
++ * Apply lightweight SQLite DDL for e2e tests so we don't depend on
++ * prisma migrate during CI. These statements mirror the Prisma schema.
+  */
+ export async function applyTestMigrations(prisma: PrismaService) {
+-  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = OFF;');
+-
+-  // Core tables
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "User" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++  const statements = [
++    'PRAGMA foreign_keys = ON;',
++    `CREATE TABLE IF NOT EXISTS "User" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "email" TEXT NOT NULL UNIQUE,
+       "passwordHash" TEXT NOT NULL,
+       "nickname" TEXT NOT NULL,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Project" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Project" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "name" TEXT NOT NULL,
+       "description" TEXT,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Issue" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Issue" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "projectId" INTEGER NOT NULL,
+       "reporterId" INTEGER NOT NULL,
+       "assigneeId" INTEGER,
+       "title" TEXT NOT NULL,
+       "description" TEXT,
+       "status" TEXT NOT NULL DEFAULT 'OPEN',
+       "viewCount" INTEGER NOT NULL DEFAULT 0,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      "updatedAt" DATETIME NOT NULL,
+-      FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Comment" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
++      FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Comment" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "issueId" INTEGER NOT NULL,
+       "authorId" INTEGER NOT NULL,
+       "content" TEXT NOT NULL,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      "updatedAt" DATETIME NOT NULL,
+-      FOREIGN KEY ("issueId") REFERENCES "Issue"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Team" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
++      FOREIGN KEY ("issueId") REFERENCES "Issue"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Team" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "name" TEXT NOT NULL,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "TeamMember" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    );`,
++    `CREATE TABLE IF NOT EXISTS "TeamMember" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "teamId" INTEGER NOT NULL,
+       "userId" INTEGER NOT NULL,
+       "role" TEXT NOT NULL,
+       "joinedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "WorkspaceItem" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      UNIQUE("teamId", "userId")
++    );`,
++    `CREATE TABLE IF NOT EXISTS "WorkspaceItem" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "teamId" INTEGER NOT NULL,
+       "title" TEXT NOT NULL,
+       "content" TEXT,
+       "createdBy" INTEGER NOT NULL,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      "updatedAt" DATETIME NOT NULL,
+-      FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "DailyIssueStats" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
++      FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
++    );`,
++    `CREATE TABLE IF NOT EXISTS "DailyIssueStats" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "date" TEXT NOT NULL UNIQUE,
+       "createdCount" INTEGER NOT NULL DEFAULT 0,
+       "resolvedCount" INTEGER NOT NULL DEFAULT 0,
+       "commentCount" INTEGER NOT NULL DEFAULT 0,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Product" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Product" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "name" TEXT NOT NULL,
+       "description" TEXT,
+       "category" TEXT NOT NULL,
+       "brand" TEXT NOT NULL,
+       "price" REAL NOT NULL,
+       "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Order" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Order" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "userId" INTEGER NOT NULL,
+       "totalAmount" REAL NOT NULL,
+       "status" TEXT NOT NULL DEFAULT 'PENDING',
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "OrderItem" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
++    );`,
++    `CREATE TABLE IF NOT EXISTS "OrderItem" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "orderId" INTEGER NOT NULL,
+       "productId" INTEGER NOT NULL,
+       "quantity" INTEGER NOT NULL,
+       "price" REAL NOT NULL,
+-      FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE,
+-      FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  await prisma.$executeRawUnsafe(`
+-    CREATE TABLE IF NOT EXISTS "Notification" (
+-      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
++      FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE,
++      FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE
++    );`,
++    `CREATE TABLE IF NOT EXISTS "Notification" (
++      "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+       "userId" INTEGER NOT NULL,
+       "type" TEXT NOT NULL,
+       "message" TEXT NOT NULL,
+       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE
+-    );
+-  `);
+-
+-  // Indexes
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Issue_projectId_idx" ON "Issue"("projectId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Issue_reporterId_idx" ON "Issue"("reporterId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Issue_assigneeId_idx" ON "Issue"("assigneeId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Issue_status_idx" ON "Issue"("status");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Comment_issueId_idx" ON "Comment"("issueId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Comment_authorId_idx" ON "Comment"("authorId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "TeamMember_teamId_idx" ON "TeamMember"("teamId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "TeamMember_userId_idx" ON "TeamMember"("userId");');
+-  await prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "TeamMember_teamId_userId_key" ON "TeamMember"("teamId", "userId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "WorkspaceItem_teamId_idx" ON "WorkspaceItem"("teamId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "WorkspaceItem_createdBy_idx" ON "WorkspaceItem"("createdBy");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "DailyIssueStats_date_idx" ON "DailyIssueStats"("date");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Product_category_idx" ON "Product"("category");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Product_brand_idx" ON "Product"("brand");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Product_status_idx" ON "Product"("status");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Product_price_idx" ON "Product"("price");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Order_userId_idx" ON "Order"("userId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Order_status_idx" ON "Order"("status");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "OrderItem_orderId_idx" ON "OrderItem"("orderId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "OrderItem_productId_idx" ON "OrderItem"("productId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Notification_userId_idx" ON "Notification"("userId");');
+-  await prisma.$executeRawUnsafe('CREATE INDEX IF NOT EXISTS "Notification_type_idx" ON "Notification"("type");');
++      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
++    );`,
++    'CREATE INDEX IF NOT EXISTS "Issue_projectId_idx" ON "Issue"("projectId");',
++    'CREATE INDEX IF NOT EXISTS "Issue_reporterId_idx" ON "Issue"("reporterId");',
++    'CREATE INDEX IF NOT EXISTS "Issue_assigneeId_idx" ON "Issue"("assigneeId");',
++    'CREATE INDEX IF NOT EXISTS "Issue_status_idx" ON "Issue"("status");',
++    'CREATE INDEX IF NOT EXISTS "Comment_issueId_idx" ON "Comment"("issueId");',
++    'CREATE INDEX IF NOT EXISTS "Comment_authorId_idx" ON "Comment"("authorId");',
++    'CREATE INDEX IF NOT EXISTS "TeamMember_teamId_idx" ON "TeamMember"("teamId");',
++    'CREATE INDEX IF NOT EXISTS "TeamMember_userId_idx" ON "TeamMember"("userId");',
++    'CREATE INDEX IF NOT EXISTS "WorkspaceItem_teamId_idx" ON "WorkspaceItem"("teamId");',
++    'CREATE INDEX IF NOT EXISTS "WorkspaceItem_createdBy_idx" ON "WorkspaceItem"("createdBy");',
++    'CREATE UNIQUE INDEX IF NOT EXISTS "DailyIssueStats_date_key" ON "DailyIssueStats"("date");',
++    'CREATE INDEX IF NOT EXISTS "DailyIssueStats_date_idx" ON "DailyIssueStats"("date");',
++    'CREATE INDEX IF NOT EXISTS "Product_category_idx" ON "Product"("category");',
++    'CREATE INDEX IF NOT EXISTS "Product_brand_idx" ON "Product"("brand");',
++    'CREATE INDEX IF NOT EXISTS "Product_status_idx" ON "Product"("status");',
++    'CREATE INDEX IF NOT EXISTS "Product_price_idx" ON "Product"("price");',
++    'CREATE INDEX IF NOT EXISTS "Order_userId_idx" ON "Order"("userId");',
++    'CREATE INDEX IF NOT EXISTS "Order_status_idx" ON "Order"("status");',
++    'CREATE INDEX IF NOT EXISTS "OrderItem_orderId_idx" ON "OrderItem"("orderId");',
++    'CREATE INDEX IF NOT EXISTS "OrderItem_productId_idx" ON "OrderItem"("productId");',
++    'CREATE INDEX IF NOT EXISTS "Notification_userId_idx" ON "Notification"("userId");',
++    'CREATE INDEX IF NOT EXISTS "Notification_type_idx" ON "Notification"("type");',
++  ];
+ 
+-  await prisma.$executeRawUnsafe('PRAGMA foreign_keys = ON;');
++  for (const statement of statements) {
++    await prisma.$executeRawUnsafe(statement);
++  }
+ }

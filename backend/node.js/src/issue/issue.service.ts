@@ -158,7 +158,7 @@ export class IssueService {
    * Popular = highest (viewCount + commentCount) in last 7 days
    */
   async findPopular(): Promise<IssueResponseDto[]> {
-    const cacheKey = 'popular_issues';
+    const cacheKey = 'popular_issues:v1';
 
     // Try to get from cache
     const cached = await this.cacheManager.get<IssueResponseDto[]>(cacheKey);
@@ -199,7 +199,7 @@ export class IssueService {
       .map((item) => this.mapToResponse(item.issue));
 
     // Cache for 5 minutes (300 seconds, already configured globally)
-    await this.cacheManager.set(cacheKey, popularIssues);
+    await this.cacheManager.set(cacheKey, popularIssues, 300);
 
     return popularIssues;
   }

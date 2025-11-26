@@ -1,7 +1,8 @@
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ClassSerializerInterceptor, Logger, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 import { HealthController } from './common/health/health.controller';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { UserModule } from './user/user.module';
@@ -24,12 +25,36 @@ import { NotificationModule } from './notification/notification.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath:
+        process.env.NODE_ENV === 'test'
+          ? ['.env.test', '.env']
+          : ['.env.local', '.env'],
     }),
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
-      ttl: 300, // 5 minutes in seconds
-      max: 100, // Maximum number of items in cache
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const logger = new Logger(AppModule.name);
+        const host = configService.get<string>('REDIS_HOST');
+        const port = Number(configService.get<string>('REDIS_PORT')) || 6379;
+
+        if (!host) {
+          logger.warn('REDIS_HOST not set. Falling back to in-memory cache store.');
+          return {
+            ttl: 300,
+          };
+        }
+
+        return {
+          store: await redisStore({
+            socket: {
+              host,
+              port,
+            },
+          }),
+          ttl: 300,
+        };
+      },
     }),
     PrismaModule,
     UserModule,

@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom, retry, timeout } from 'rxjs';
@@ -17,12 +19,21 @@ export class ExternalService {
   private readonly MAX_RETRIES = 3;
   private readonly EXTERNAL_API_URL = 'https://jsonplaceholder.typicode.com';
 
-  constructor(private httpService: HttpService) {}
+  constructor(
+    private httpService: HttpService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   /**
    * Fetch example data from external API with timeout and retry logic
    */
   async fetchExampleData(): Promise<ExternalDataResponse[]> {
+    const cacheKey = 'external:posts:v1';
+    const cached = await this.cacheManager.get<ExternalDataResponse[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const url = `${this.EXTERNAL_API_URL}/posts`;
 
     this.logger.log(`Fetching data from external API: ${url}`);
@@ -54,7 +65,9 @@ export class ExternalService {
       this.logger.log(`Successfully fetched ${response.data.length} items from external API`);
 
       // Return first 10 items
-      return response.data.slice(0, 10);
+      const items = response.data.slice(0, 10);
+      await this.cacheManager.set(cacheKey, items, 300);
+      return items;
     } catch (error) {
       this.logger.error('External API call failed, returning fallback response', error.stack);
 
@@ -74,6 +87,12 @@ export class ExternalService {
    * Fetch a single post by ID
    */
   async fetchPostById(id: number): Promise<ExternalDataResponse | null> {
+    const cacheKey = `external:post:v1:${id}`;
+    const cached = await this.cacheManager.get<ExternalDataResponse>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const url = `${this.EXTERNAL_API_URL}/posts/${id}`;
 
     this.logger.log(`Fetching post ${id} from external API`);
@@ -103,6 +122,7 @@ export class ExternalService {
       const response = await firstValueFrom(observable);
       this.logger.log(`Successfully fetched post ${id} from external API`);
 
+      await this.cacheManager.set(cacheKey, response.data, 300);
       return response.data;
     } catch (error) {
       this.logger.error(`Failed to fetch post ${id}, returning null`, error.stack);

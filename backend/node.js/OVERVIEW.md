@@ -698,6 +698,326 @@ CI:
 
 ---
 
+## Milestone N2.6 – Production Ready (실 RDB / Redis / Cloud Deploy)
+
+**목표**
+
+* N2.0~N2.5에서 만든 기능은 그대로 두고,
+  실제 서비스 환경을 상정한 **인프라·운영 레벨**을 보강한다.
+* 다음을 만족하는 상태를 만든다.
+
+  * SQLite → **실 RDB(PostgreSQL 또는 MySQL)** 전환
+  * 인메모리 캐시 → **Redis 기반 캐시** 전환
+  * **Docker + 클라우드 배포**까지 완료
+* 포트폴리오 관점에서
+
+  > “Node/Nest + Prisma + RDB + Redis + ES + Kafka + CI + Cloud Deploy가 하나의 프로젝트 안에 모여 있다”
+  > 라고 설명할 수 있는 수준을 목표로 한다.
+
+### 범위
+
+* **새로운 비즈니스 도메인 추가 없음.**
+
+  * N2.1~N2.5에서 만든 Issue/Team/Stats/Search/Order 도메인 그대로 사용.
+* 이 마일스톤의 변경점은 전부 **플랫폼/인프라 레이어**에 한정한다.
+
+  * DB/캐시/배포 방식 변경
+  * 설정/환경 분리
+  * README/운영 문서 보강
+
+### 1. 실 RDB 전환 (SQLite → PostgreSQL 또는 MySQL)
+
+**요구 사항**
+
+1. `prisma/schema.prisma` 수정
+
+   * 기존:
+
+     ```prisma
+     datasource db {
+       provider = "sqlite"
+       url      = env("DATABASE_URL")
+     }
+     ```
+
+   * 변경 예시 (PostgreSQL 기준):
+
+     ```prisma
+     datasource db {
+       provider = "postgresql"
+       url      = env("DATABASE_URL")
+     }
+     ```
+
+   * MySQL을 쓸 경우 `provider = "mysql"` 로 교체.
+
+2. 로컬 개발/테스트용 DB 컨테이너
+
+   * 루트에 `docker-compose.yml` 추가(또는 확장).
+
+     ```yaml
+     services:
+       db:
+         image: postgres:16
+         environment:
+           POSTGRES_USER: app
+           POSTGRES_PASSWORD: app
+           POSTGRES_DB: app
+         ports:
+           - "5432:5432"
+         # volumes, healthcheck 등은 필요 시 추가
+     ```
+
+   * `.env`, `.env.test` 에 `DATABASE_URL` 설정:
+
+     ```env
+     DATABASE_URL=postgresql://app:app@localhost:5432/app?schema=public
+     ```
+
+3. Prisma 마이그레이션 및 적용
+
+   * dev 환경:
+
+     ```bash
+     npx prisma migrate dev
+     ```
+
+   * 배포용(프로덕션):
+
+     ```bash
+     npx prisma migrate deploy
+     ```
+
+   * 스키마 변경이 필요한 경우, N2.1~N2.5에서 정의한 도메인을 유지하는 범위에서 최소 수정.
+
+4. 코드/환경 반영
+
+   * Nest PrismaModule에서 `DATABASE_URL`을 통해 연결.
+   * 테스트 코드에서 DB 초기화 로직(시드, truncate 등) 정리.
+
+### 2. Redis 캐시 도입 (인기 이슈 / 외부 API 캐시)
+
+**요구 사항**
+
+1. Redis 인스턴스 준비
+
+   * `docker-compose.yml`에 Redis 서비스 추가:
+
+     ```yaml
+     services:
+       redis:
+         image: redis:7
+         ports:
+           - "6379:6379"
+     ```
+
+2. Nest CacheModule 설정 변경
+
+   * 기존: in-memory cache (기본 Store)
+
+   * 변경: Redis Store
+
+   * 예시:
+
+     ```ts
+     import * as redisStore from 'cache-manager-redis-store';
+     import { CacheModule } from '@nestjs/common';
+
+     @Module({
+       imports: [
+         CacheModule.registerAsync({
+           useFactory: () => ({
+             store: redisStore as any,
+             host: process.env.REDIS_HOST,
+             port: Number(process.env.REDIS_PORT ?? 6379),
+             ttl: 5 * 60, // 기본 TTL(초), 상황에 따라 조정
+           }),
+         }),
+         // ...
+       ],
+     })
+     export class AppModule {}
+     ```
+
+   * `.env` 예시:
+
+     ```env
+     REDIS_HOST=localhost
+     REDIS_PORT=6379
+     ```
+
+3. N2.3 캐시 로직 Redis 사용으로 전환
+
+   * 인기 이슈 캐시:
+
+     * 캐시 키 예: `popular_issues:v1`
+     * TTL 예: 300초
+
+   * 외부 API 캐시:
+
+     * 캐시 키 예: `external:xxx:{param...}`
+     * TTL 예: 60~300초
+
+   * CacheService(or CacheManager)를 통해 **모든 캐싱이 Redis를 통하도록** 정리.
+
+4. 장애/오류 처리
+
+   * Redis 연결 실패 시:
+
+     * 서버 부팅 실패로 처리할지,
+     * 캐시만 비활성화하고 DB로만 동작할지 정책 정의.
+   * 로그에 최소 Redis 연결 상태는 남기도록 한다.
+
+### 3. Docker & 클라우드 배포
+
+**요구 사항**
+
+1. 애플리케이션 Dockerfile
+
+   * 예시(단일 스테이지, 필요하면 멀티 스테이지로 개선):
+
+     ```dockerfile
+     FROM node:20-alpine
+
+     WORKDIR /app
+
+     COPY package*.json ./
+     RUN npm ci
+
+     COPY . .
+     RUN npm run build
+
+     ENV NODE_ENV=production
+     EXPOSE 3000
+
+     CMD ["node", "dist/main.js"]
+     ```
+
+2. 로컬용 docker-compose 확장
+
+   * `app` + `db` + `redis` (+ ES/Kafka는 선택)에 대한 서비스 정의.
+   * 예시:
+
+     ```yaml
+     services:
+       app:
+         build: .
+         depends_on:
+           - db
+           - redis
+         environment:
+           DATABASE_URL: postgresql://app:app@db:5432/app?schema=public
+           REDIS_HOST: redis
+           REDIS_PORT: 6379
+           NODE_ENV: production
+         ports:
+           - "3000:3000"
+     ```
+
+3. 클라우드 배포 대상
+
+   * AWS EC2, Lightsail, Render, Railway 등 **아무 한 곳** 선택.
+   * 최소 요구:
+
+     * 애플리케이션 컨테이너 실행
+     * DB/Redis는
+
+       * 동일 호스트 내 docker-compose로 함께 올리거나,
+       * 매니지드 서비스(RDS/Elasticache 등)를 쓴다고 가정하고 설정.
+     * 외부에서 `http(s)://<host>/api/health`로 접근 가능.
+
+4. 환경 변수/설정 분리
+
+   * 로컬/테스트/프로덕션용 `.env.*` 혹은 인프라에서 주입하는 환경변수로 분리.
+   * 레포에는 `.env.example`만 포함:
+
+     ```env
+     # .env.example
+     DATABASE_URL=
+     REDIS_HOST=
+     REDIS_PORT=
+     JWT_SECRET=
+     # etc...
+     ```
+
+5. GitHub Actions와의 연계(선택)
+
+   * CI 워크플로우에 **빌드 단계** 추가:
+
+     ```yaml
+     - name: Build Docker image
+       run: docker build -t app:ci .
+     ```
+
+   * 필요 시 Docker Hub / GHCR로 push 하는 job 추가(옵션).
+
+   * 배포 자체는 수동/별도 파이프라인으로 처리해도 된다.
+
+### 테스트 & CI
+
+* 기존 N2.0~N2.5 테스트는 그대로 유지.
+
+* 추가/변경 요구:
+
+  1. **DB 의존 테스트**
+
+     * PostgreSQL/MySQL 환경에서 e2e 테스트가 정상 동작하는지 확인.
+     * 테스트 실행 전, DB 초기화 스크립트(마이그레이션 + truncate/seed)를 정리.
+
+  2. **Redis 의존 테스트**
+
+     * 인기 이슈 캐시/외부 API 캐시가 Redis 기반으로 동작하는지,
+       로컬 환경에서 한 번은 실제로 확인.
+     * CI에서는 Redis를 서비스로 띄우거나,
+       Redis 의존 테스트를 별도 스크립트로 분리하는 것도 가능.
+
+  3. **헬스체크**
+
+     * `/api/health`가 DB/Redis 의존성을 포함하도록 확장해도 됨
+       (예: 간단한 ping/커넥션 체크).
+
+* CI 파이프라인은 여전히
+
+  ```bash
+  npm test
+  ```
+
+  를 기준으로 유지하되, RDB/Redis가 필요한 테스트를 어떻게 포함할지 선택적으로 설계한다.
+
+### 완료 기준
+
+* 로컬 개발 환경
+
+  * `docker-compose up`으로
+
+    * `app`, `db(PostgreSQL/MySQL)`, `redis`가 함께 떠야 한다.
+  * `http://localhost:3000/api/health` 200 응답.
+  * N2.1~N2.5에서 구현한 주요 API가 로컬/도커 환경에서 모두 동작.
+
+* Prisma
+
+  * 실 RDB에 스키마 마이그레이션 완료.
+  * 기본 CRUD/e2e 테스트가 새로운 DB 위에서 통과.
+
+* Redis
+
+  * 인기 이슈/외부 API 캐시가 실제 Redis를 사용.
+  * Redis 비가용 시 동작 방식(에러 처리/로그)이 정의되어 있음.
+
+* 클라우드 배포
+
+  * 최소 한 번은 클라우드에 배포해 실제 URL로 접근해본 경험.
+  * README에 다음 내용이 포함되어 있음:
+
+    * 전체 아키텍처(텍스트 또는 간단한 다이어그램)
+    * 로컬 실행 방법 (Docker/비Docker 둘 다 가능하면 명시)
+    * 배포 방법(요약)
+    * 주요 의존성(RDB/Redis/ES/Kafka 등)
+
+이 시점에서 N2.x 프로젝트는 **“단일 코드베이스 안에서 Node/Nest 기반 웹 백엔드의 핵심 패턴 + 인프라 패턴까지 한 번씩 경험한 상태”**가 된다.
+
+---
+
 ## 추가로 신경 쓸 점
 
 1. **초기에 CI를 준비하는 이유**

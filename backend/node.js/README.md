@@ -1,10 +1,10 @@
 # Web Phase 1.5 - Node.js Pattern Training
 
-This project implements Web Phase 1.5 milestones (N2.0-N2.5) for Node.js backend pattern training using NestJS.
+This project implements Web Phase 1.5 milestones (N2.0-N2.6) for Node.js backend pattern training using NestJS.
 
 ## Current Status
 
-**All Milestones Completed (N2.0 - N2.5)** ✅
+**All Milestones Completed (N2.0 - N2.6)** ✅
 
 **Milestone N2.0** - NestJS Bootstrap & CI Baseline ✅
 - ✅ NestJS application setup
@@ -45,12 +45,18 @@ This project implements Web Phase 1.5 milestones (N2.0-N2.5) for Node.js backend
 - ✅ Event-driven architecture
 - ✅ Docker Compose setup for local development
 
+**Milestone N2.6** - Production Ready (DB, Cache, Deployable) ✅
+- ✅ SQLite-first schema for fast local/test runs (PostgreSQL optional via Docker)
+- ✅ Redis-backed global caching for popular issues and external API results
+- ✅ Dockerfile and expanded Docker Compose with Postgres, Redis, and app service
+- ✅ Environment profiles for local/test/prod
+
 ## Tech Stack
 
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript
 - **Framework**: NestJS 10.x
-- **Database**: SQLite (dev/test), PostgreSQL (production-ready)
+- **Database**: SQLite (default dev/test) or PostgreSQL via Docker Compose
 - **ORM**: Prisma
 - **Search**: Elasticsearch 8.x
 - **Message Queue**: Kafka (via KafkaJS)
@@ -66,6 +72,7 @@ This project implements Web Phase 1.5 milestones (N2.0-N2.5) for Node.js backend
 
 - Node.js 20 or higher
 - npm
+- Docker (for Postgres/Redis/Kafka/Elasticsearch services)
 
 ### Installation
 
@@ -73,14 +80,11 @@ This project implements Web Phase 1.5 milestones (N2.0-N2.5) for Node.js backend
 # Install dependencies
 npm install
 
-# Generate Prisma client
+# Generate Prisma client (SQLite by default)
 npm run prisma:generate
 
-# (Optional) Create initial database
-npm run prisma:migrate
-
-# (Optional) Start Kafka and Elasticsearch with Docker
-docker-compose up -d
+# Optional: start external infrastructure (Postgres + Redis). Add kafka/elasticsearch as needed
+docker compose up -d db redis
 ```
 
 ### Running the Application
@@ -95,6 +99,16 @@ npm run start:prod
 ```
 
 The application will be available at `http://localhost:3000`
+
+#### Running with Docker Compose
+
+```bash
+# Build and start the core stack (app + Postgres + Redis)
+docker compose up --build app db redis
+
+# Optionally include Kafka/Elasticsearch by adding services
+docker compose up --build app db redis kafka zookeeper kafka-ui elasticsearch
+```
 
 ### API Endpoints
 
@@ -148,6 +162,8 @@ The application will be available at `http://localhost:3000`
 
 ### Testing
 
+e2e runs default to SQLite, so Docker services are optional. Start Postgres/Redis first (e.g., `docker compose up -d db redis`) only if you want to test external services.
+
 ```bash
 # Unit tests
 npm test
@@ -168,7 +184,7 @@ Copy `.env.example` to `.env.local` and configure:
 PORT=3000
 NODE_ENV=development
 
-# Database
+# Database (SQLite by default)
 DATABASE_URL="file:./dev.db"
 
 # JWT
@@ -184,6 +200,10 @@ KAFKA_BROKERS=localhost:9092
 KAFKA_CLIENT_ID=web-phase1-5-node
 KAFKA_GROUP_ID=notification-consumer-group
 KAFKA_ENABLED=true  # Set to false to disable Kafka
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
 ```
 
 ## Project Structure
