@@ -1,0 +1,22 @@
+# Build outputs
+target/
+build/
+__pycache__/
+*.class
+*.pyc
+*.o
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Temp files
+tmp/
+temp/

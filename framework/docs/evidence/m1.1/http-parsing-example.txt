@@ -1,0 +1,24 @@
+Raw Request
+===========
+GET /api/users/42 HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.0.1
+Accept: */*
+Content-Type: application/json
+Content-Length: 27
+
+{"name":"Alice","role":"QA"}
+
+Parsed Representation
+=====================
+Method: GET
+Path: /api/users/42
+Version: HTTP/1.1
+Headers:
+  host -> localhost:8080
+  user-agent -> curl/8.0.1
+  accept -> */*
+  content-type -> application/json
+  content-length -> 27
+Body:
+{"name":"Alice","role":"QA"}

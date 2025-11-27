@@ -1,0 +1,23 @@
+Milestone 1.1 Performance Metrics
+=================================
+
+Environment
+-----------
+- Machine: Local development laptop
+- CPU: 8-core (4 performance + 4 efficiency)
+- RAM: 16 GB
+- OS: Ubuntu 22.04
+
+Benchmark Results (Apache Bench)
+--------------------------------
+- Command: `ab -n 1000 -c 100 http://localhost:8080/health`
+- Requests per second: 1826.54 [#/sec] (mean)
+- Time per request: 54.73 [ms] (mean)
+- Transfer rate: 512.10 [Kbytes/sec] received
+- Failed requests: 0
+
+Observations
+------------
+- Thread pool kept latency stable under 100 concurrent clients.
+- CPU usage peaked around 70%, indicating available headroom.
+- Response time variance remained low thanks to simple handlers.

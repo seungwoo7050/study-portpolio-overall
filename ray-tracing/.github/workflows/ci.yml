@@ -1,0 +1,256 @@
+name: Arena60 CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-linux
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clear vcpkg cache on retry
+      if: ${{ github.run_attempt > 1 }}
+      run: rm -rf "${{ env.VCPKG_ROOT }}"
+
+    - name: Cache vcpkg
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.VCPKG_ROOT }}
+          ~/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('server/vcpkg.json', 'vcpkg-configuration.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+
+    - name: Setup vcpkg
+      run: |
+        if [ ! -d "${VCPKG_ROOT}" ]; then
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+        cd "${{ github.workspace }}/server"
+        "${VCPKG_ROOT}/vcpkg" install --triplet ${VCPKG_DEFAULT_TRIPLET}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev clang-format clang-tidy
+    
+    - name: Build (Release)
+      run: |
+        cd server
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" ..
+        make -j$(nproc)
+
+    - name: Build (Debug)
+      run: |
+        cd server
+        mkdir build-debug && cd build-debug
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" ..
+        make -j$(nproc)
+  
+  test:
+    needs: build
+    runs-on: ubuntu-22.04
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-linux
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: arena60_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clear vcpkg cache on retry
+      if: ${{ github.run_attempt > 1 }}
+      run: rm -rf "${{ env.VCPKG_ROOT }}"
+
+    - name: Cache vcpkg
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.VCPKG_ROOT }}
+          ~/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('server/vcpkg.json', 'vcpkg-configuration.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+
+    - name: Setup vcpkg
+      run: |
+        if [ ! -d "${VCPKG_ROOT}" ]; then
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+        cd "${{ github.workspace }}/server"
+        "${VCPKG_ROOT}/vcpkg" install --triplet ${VCPKG_DEFAULT_TRIPLET}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev
+    
+    - name: Build tests
+      run: |
+        cd server
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" ..
+        make -j$(nproc)
+
+    - name: Run unit tests
+      run: |
+        cd server/build
+        ctest --output-on-failure -L unit
+
+    - name: Run integration tests
+      env:
+        DATABASE_URL: postgresql://test:test@localhost:5432/arena60_test
+        REDIS_URL: redis://localhost:6379
+      run: |
+        cd server/build
+        ctest --output-on-failure -L integration
+  
+  lint:
+    runs-on: ubuntu-22.04
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-linux
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clear vcpkg cache on retry
+      if: ${{ github.run_attempt > 1 }}
+      run: rm -rf "${{ env.VCPKG_ROOT }}"
+
+    - name: Cache vcpkg
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.VCPKG_ROOT }}
+          ~/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('server/vcpkg.json', 'vcpkg-configuration.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+
+    - name: Setup vcpkg
+      run: |
+        if [ ! -d "${VCPKG_ROOT}" ]; then
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+        cd "${{ github.workspace }}/server"
+        "${VCPKG_ROOT}/vcpkg" install --triplet ${VCPKG_DEFAULT_TRIPLET}
+
+    - name: Install clang-format
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format-15 clang-tidy
+        sudo update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-15 100
+
+    - name: Check formatting
+      run: bash scripts/check-format.sh
+
+    - name: Run clang-tidy
+      run: |
+        cd server
+        mkdir build && cd build
+        cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" ..
+        FILES=$(find ../src -name '*.cpp' 2>/dev/null || true)
+        if [ -n "$FILES" ]; then
+          echo "$FILES" | xargs -I {} clang-tidy -p . {} || true
+        fi
+  
+  coverage:
+    needs: test
+    runs-on: ubuntu-22.04
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: x64-linux
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clear vcpkg cache on retry
+      if: ${{ github.run_attempt > 1 }}
+      run: rm -rf "${{ env.VCPKG_ROOT }}"
+
+    - name: Cache vcpkg
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.VCPKG_ROOT }}
+          ~/.cache/vcpkg
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('server/vcpkg.json', 'vcpkg-configuration.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+
+    - name: Setup vcpkg
+      run: |
+        if [ ! -d "${VCPKG_ROOT}" ]; then
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "${VCPKG_ROOT}"
+          "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
+        fi
+        cd "${{ github.workspace }}/server"
+        "${VCPKG_ROOT}/vcpkg" install --triplet ${VCPKG_DEFAULT_TRIPLET}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev python3-pip
+        python3 -m pip install --upgrade --user gcovr
+
+    - name: Build with coverage
+      run: |
+        cmake -S server -B server/build -DCMAKE_BUILD_TYPE=Debug \
+              -DENABLE_COVERAGE=ON \
+              -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        cmake --build server/build -- -j$(nproc)
+
+    - name: Run tests
+      run: ctest --test-dir server/build --output-on-failure
+
+    - name: Coverage report
+      run: |
+        python3 -m gcovr --object-directory server/build --root . \
+          --filter 'server/src' --exclude-directories 'server/build/CMakeFiles' \
+          --exclude-directories 'server/build/Testing' --xml coverage.xml \
+          --html-details coverage.html --fail-under-line 70
+        mkdir -p docs/evidence/mvp-1.0/coverage
+        cp coverage.html docs/evidence/mvp-1.0/coverage/index.html
+
+    - name: Upload coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: docs/evidence/mvp-1.0/coverage/

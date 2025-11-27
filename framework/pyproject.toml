@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-spring"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    # No framework dependencies
+    # Will add psycopg2 for 1.3
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
