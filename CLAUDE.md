@@ -39,4 +39,4 @@ game-server/ 프로젝트들의 디자인문서만큼의 품질을 보장하려�
 각 프로젝트의 the-shortest-distance/ 폴더는 "모르는 것은 찾아보면서 구현한다"라는 모토를 위해, 적어도 첫 코드를 작성할 수 있도록 돕는 문서입니다.
 모든 프로젝트의 the-shortest-distance/는 해당 프로젝트의 design/ 문서들을 참조하여 작성되어야합니다.
 
-video-editor/design 는 완성상태. 예시로 활용.
+video-editor/the-shortest-distance 는 완성상태. 예시로 활용.
