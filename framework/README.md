@@ -1,103 +1,131 @@
-# mini-spring – Framework from Scratch
+# mini-spring – 프레임워크를 처음부터 만들기
 
-**Status**: ✅ Phase 1 Complete  
-**Completion Date**: 2025-10-31
+**상태**: ✅ Phase 1 완료
+**완료 날짜**: 2025-10-31
 
-A lightweight web framework built from scratch to understand how Spring Boot, Django, and other frameworks work internally.
+Spring Boot, Django 및 기타 프레임워크가 내부적으로 어떻게 작동하는지 이해하기 위해 처음부터 구축한 경량 웹 프레임워크.
 
-## Verification
+## 검증
 
 ```bash
-# Clone and run
+# 클론 및 실행
 git clone https://github.com/your-username/mini-spring.git
 cd mini-spring
 ./build.sh
 ./run_sample.sh
 
-# Test
+# 테스트
 curl http://localhost:8080/api/users
 ```
 
-## Demo
+## 데모
 
-Sample walkthrough screenshots and recordings are available in `docs/evidence/m1.4/`.
+샘플 워크스루 스크린샷 및 녹화는 `docs/evidence/m1.4/`에서 확인할 수 있습니다.
 
-## Evidence
+## 증거
 
-All validation reports available in `docs/evidence/`.
+모든 검증 리포트는 `docs/evidence/`에서 확인할 수 있습니다.
 
-## Next Phase
+## 다음 단계
 
-Ready for Phase 2: sagaline (production e-commerce platform)
+Phase 2: sagaline (프로덕션 전자상거래 플랫폼) 준비 완료
 
-## Contact
+## 연락처
 
-Email: your.email@example.com  
+Email: your.email@example.com
 LinkedIn: https://www.linkedin.com/in/your-profile
 
-## Features Implemented
-- [x] HTTP/1.1 Server (raw sockets)
-- [x] Routing with decorators
-- [x] Middleware pipeline
-- [x] Dependency injection container
-- [x] Thread-safe connection pooling
-- [x] Transaction isolation exploration (documentation)
+## 구현된 기능
+- [x] HTTP/1.1 서버 (원시 소켓)
+- [x] 데코레이터를 사용한 라우팅
+- [x] 미들웨어 파이프라인
+- [x] 의존성 주입 컨테이너
+- [x] 스레드 안전 연결 풀링
+- [x] 트랜잭션 격리 수준 탐구 (문서화)
 
-## Architecture
+## 아키텍처
 ```
-HTTP Layer (Milestone 1.1)
+HTTP 계층 (Milestone 1.1)
     ↓
-Framework Core (Milestone 1.2)
+프레임워크 코어 (Milestone 1.2)
     ↓
-Data Access (Milestone 1.3)
+데이터 접근 (Milestone 1.3)
     ↓
-Integrated Sample App (Milestone 1.4)
+통합 샘플 앱 (Milestone 1.4)
 ```
 
-## Demo Commands
+## 데모 명령어
 ```bash
-# Start server
+# 서버 시작
 ./run_sample.sh
 
-# Test API
+# API 테스트
 curl http://localhost:8080/health
 curl -H "Authorization: Bearer secrettoken" http://localhost:8080/api/users
 ```
 
-## Key Learnings
-- HTTP is a text-based protocol over TCP sockets.
-- Frameworks abstract common patterns such as routing and middleware.
-- Dependency injection manages object lifecycles and promotes modularity.
-- Connection pooling prevents resource exhaustion under concurrent load.
-- Isolation levels trade consistency for performance; documentation captures experiments.
+## 주요 학습 내용
+- HTTP는 TCP 소켓을 통한 텍스트 기반 프로토콜입니다.
+- 프레임워크는 라우팅 및 미들웨어와 같은 공통 패턴을 추상화합니다.
+- 의존성 주입은 객체 생명주기를 관리하고 모듈성을 촉진합니다.
+- 연결 풀링은 동시 부하 상황에서 리소스 고갈을 방지합니다.
+- 격리 수준은 성능을 위해 일관성을 절충합니다. 문서에 실험 내용을 기록합니다.
 
-## Comparison: mini-spring vs Spring Boot
-| Feature | mini-spring | Spring Boot |
-|---------|-------------|-------------|
-| LOC | ~700 | ~100,000+ |
-| Learning Curve | Low (you built it) | High (implicit behaviour) |
-| Features | Focused essentials | Comprehensive ecosystem |
-| Production-Ready | No | Yes |
+## 비교: mini-spring vs Spring Boot
+| 기능 | mini-spring | Spring Boot |
+|------|-------------|-------------|
+| 코드 라인 | ~700 | ~100,000+ |
+| 학습 곡선 | 낮음 (직접 구축) | 높음 (암시적 동작) |
+| 기능 | 핵심 기능 집중 | 포괄적 생태계 |
+| 프로덕션 준비 | 아니오 | 예 |
 
-## Portfolio Value
-**Interview Topics**:
-- "I implemented a web framework from scratch."
-- "I can explain dependency injection internals."
-- "I understand connection pooling and leak detection trade-offs."
+## 포트폴리오 가치
+**면접 주제**:
+- "웹 프레임워크를 처음부터 구현했습니다."
+- "의존성 주입의 내부 동작을 설명할 수 있습니다."
+- "연결 풀링 및 누수 탐지 절충점을 이해합니다."
 
-**Skills Demonstrated**:
-- Network programming (sockets, HTTP parsing)
-- Concurrency (thread pools, synchronisation)
-- Design patterns (middleware, dependency injection, object pooling)
-- Resource management (graceful shutdown, leak detection)
+**입증된 기술**:
+- 네트워크 프로그래밍 (소켓, HTTP 파싱)
+- 동시성 (스레드 풀, 동기화)
+- 디자인 패턴 (미들웨어, 의존성 주입, 객체 풀링)
+- 리소스 관리 (우아한 종료, 누수 탐지)
 
-## Next Steps
-Phase 2: Use Spring Boot to build the production e-commerce platform (sagaline).
+## 다음 단계
+Phase 2: Spring Boot를 사용하여 프로덕션 전자상거래 플랫폼(sagaline) 구축.
 
-## Timeline
-- Milestone 1.1 (HTTP Server): 1 week
-- Milestone 1.2 (Framework): 2 weeks
-- Milestone 1.3 (Connection Pool): 2 weeks
-- Milestone 1.4 (Integration): 1 week
+## 타임라인
+- Milestone 1.1 (HTTP 서버): 1주
+- Milestone 1.2 (프레임워크): 2주
+- Milestone 1.3 (연결 풀): 2주
+- Milestone 1.4 (통합): 1주
 
-**Total**: 6 weeks
+**총계**: 6주
+
+---
+
+## 프로젝트 하이라이트
+
+이 프로젝트는 웹 프레임워크의 내부 동작을 깊이 이해하기 위해 만들어졌습니다. Spring Boot와 같은 프로덕션 프레임워크를 사용하기 전에, 이러한 프레임워크가 **어떻게** 작동하는지 정확히 이해하는 것이 중요합니다.
+
+### 왜 이 프로젝트가 중요한가?
+
+대부분의 개발자는 프레임워크를 **사용**합니다. 하지만 프레임워크를 **만들어본** 개발자는 드뭅니다. 이 프로젝트를 통해:
+
+1. **HTTP 프로토콜**: 텍스트 기반 프로토콜의 본질을 이해
+2. **라우팅**: URL 매칭 및 핸들러 디스패치 메커니즘
+3. **미들웨어**: 요청/응답 파이프라인 패턴
+4. **의존성 주입**: 객체 생명주기 및 자동 와이어링
+5. **연결 풀링**: 리소스 관리 및 성능 최적화
+
+### 학습 가치
+
+프레임워크를 처음부터 만들면서:
+- 추상화 계층을 이해하게 됩니다
+- 성능 절충점을 깊이 이해합니다
+- 디버깅 능력이 크게 향상됩니다
+- 아키텍처 설계 능력이 발전합니다
+
+---
+
+**프레임워크의 마법을 이해하기 위해 직접 만들어본 프로젝트입니다.**
