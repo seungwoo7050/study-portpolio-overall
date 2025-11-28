@@ -1,144 +1,144 @@
-# Sagaline - E-commerce Platform
+# Sagaline - 전자상거래 플랫폼
 
-Production-quality e-commerce backend for Korean market, evolving from monolith to cloud-native microservices.
+한국 시장을 위한 프로덕션 품질 전자상거래 백엔드, 모놀리스에서 클라우드 네이티브 마이크로서비스로 진화.
 
-## Status
+## 상태
 
-- **Stage**: Bootstrap complete
-- **Framework**: Spring Boot 3.2.0
-- **Language**: Java 17
-- **Version**: 0.1.0
+- **단계**: Bootstrap 완료
+- **프레임워크**: Spring Boot 3.2.0
+- **언어**: Java 17
+- **버전**: 0.1.0
 
 ## CI/CD
 
-Automated quality checks on every push:
-- ✅ Build & Compilation
-- ✅ Unit & Integration Tests
-- ✅ Code Coverage (≥80%)
-- ✅ Security Scanning (Trivy)
-- ✅ Binary Files Check
-- ✅ OpenAPI Validation
+모든 푸시마다 자동 품질 검사:
+- ✅ 빌드 & 컴파일
+- ✅ 유닛 & 통합 테스트
+- ✅ 코드 커버리지 (≥80%)
+- ✅ 보안 스캔 (Trivy)
+- ✅ 바이너리 파일 검사
+- ✅ OpenAPI 검증
 
-See [CI/CD Setup](docs/CI-CD-SETUP.md) for details.
+자세한 내용은 [CI/CD 설정](docs/CI-CD-SETUP.md) 참조.
 
-## Project Overview
+## 프로젝트 개요
 
-Sagaline is a comprehensive e-commerce platform designed for the Korean market with full integration of local payment systems (Toss Payments), authentication (Kakao OAuth), and compliance (PIPA).
+Sagaline은 로컬 결제 시스템(Toss Payments), 인증(Kakao OAuth), 규정 준수(PIPA)를 완벽하게 통합한 한국 시장을 위해 설계된 종합 전자상거래 플랫폼입니다.
 
-### Three Career Checkpoints
+### 세 가지 경력 체크포인트
 
-- **Checkpoint: Core** (Stage 1-4, 18 weeks) → Entry-level Backend Engineer
-- **Checkpoint: Scale** (+ Stage 5, 25 weeks) → Mid-level Backend Engineer
-- **Checkpoint: Cloud** (+ Stage 6-9, 36 weeks) → Senior Backend Engineer
+- **Checkpoint: Core** (Stage 1-4, 18주) → 주니어 백엔드 엔지니어
+- **Checkpoint: Scale** (+ Stage 5, 25주) → 미들 백엔드 엔지니어
+- **Checkpoint: Cloud** (+ Stage 6-9, 36주) → 시니어 백엔드 엔지니어
 
-## Tech Stack
+## 기술 스택
 
-**Core**
-- Framework: Spring Boot 3.2.0
-- Language: Java 17
-- Build Tool: Maven 3.9+
-- Database: PostgreSQL 15+
-- Cache: Redis 7+
+**핵심**
+- 프레임워크: Spring Boot 3.2.0
+- 언어: Java 17
+- 빌드 도구: Maven 3.9+
+- 데이터베이스: PostgreSQL 15+
+- 캐시: Redis 7+
 
-**Search & Messaging**
-- Search: Elasticsearch 8.x with Nori tokenizer (Korean)
-- Message Queue: Apache Kafka 3.x
+**검색 & 메시징**
+- 검색: Nori 토크나이저를 사용한 Elasticsearch 8.x (한글)
+- 메시지 큐: Apache Kafka 3.x
 
-**Monitoring & Observability**
-- Metrics: Prometheus, Micrometer
-- Visualization: Grafana
-- Logging: Logback, ELK Stack
-- Tracing: (To be added in Stage 2)
+**모니터링 & 관측성**
+- 메트릭: Prometheus, Micrometer
+- 시각화: Grafana
+- 로깅: Logback, ELK Stack
+- 추적: (Stage 2에서 추가 예정)
 
-**Container & Cloud**
-- Container: Docker
-- Orchestration: Kubernetes (Phase 2)
+**컨테이너 & 클라우드**
+- 컨테이너: Docker
+- 오케스트레이션: Kubernetes (Phase 2)
 
-**Korean Market**
-- Authentication: Kakao OAuth 2.0
-- Payment: Toss Payments
-- Compliance: PIPA (Personal Information Protection Act)
+**한국 시장**
+- 인증: Kakao OAuth 2.0
+- 결제: Toss Payments
+- 규정 준수: PIPA (개인정보 보호법)
 
-## Project Structure
+## 프로젝트 구조
 
 ```
 sagaline/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/sagaline/
-│   │   │   ├── user/              # User domain
-│   │   │   ├── product/           # Product catalog
-│   │   │   ├── order/             # Order management
-│   │   │   ├── payment/           # Payment processing
-│   │   │   ├── inventory/         # Inventory management
-│   │   │   └── common/            # Shared components
+│   │   │   ├── user/              # 사용자 도메인
+│   │   │   ├── product/           # 상품 카탈로그
+│   │   │   ├── order/             # 주문 관리
+│   │   │   ├── payment/           # 결제 처리
+│   │   │   ├── inventory/         # 재고 관리
+│   │   │   └── common/            # 공통 컴포넌트
 │   │   └── resources/
 │   │       ├── application.yml
-│   │       └── db/migration/      # Flyway migrations
+│   │       └── db/migration/      # Flyway 마이그레이션
 │   └── test/
 ├── infrastructure/
 │   ├── docker/
-│   │   └── docker-compose.yml     # Dev infrastructure
-│   ├── kubernetes/                # K8s manifests (Phase 2)
+│   │   └── docker-compose.yml     # 개발 인프라
+│   ├── kubernetes/                # K8s 매니페스트 (Phase 2)
 │   └── monitoring/
 │       ├── prometheus/
 │       └── grafana/
 ├── docs/
-│   ├── api/                       # OpenAPI specs
-│   ├── architecture/              # Architecture docs
-│   └── evidence/                  # Stage completion evidence
+│   ├── api/                       # OpenAPI 스펙
+│   ├── architecture/              # 아키텍처 문서
+│   └── evidence/                  # 단계 완료 증거
 ├── .meta/
-│   └── state.yml                  # Project progress tracking
+│   └── state.yml                  # 프로젝트 진행 추적
 └── pom.xml
 ```
 
-## Quick Start
+## 빠른 시작
 
-### Prerequisites
+### 필수 요구사항
 
-- Java 17 or higher
+- Java 17 이상
 - Maven 3.9+
-- Docker and Docker Compose
+- Docker 및 Docker Compose
 
-### 1. Start Infrastructure
+### 1. 인프라 시작
 
 ```bash
 cd infrastructure/docker
 docker-compose up -d
 ```
 
-This will start:
-- PostgreSQL (port 5432)
-- Redis (port 6379)
-- Elasticsearch (port 9200)
-- Kafka + Zookeeper (port 9092)
-- Prometheus (port 9090)
-- Grafana (port 3000)
+다음이 시작됩니다:
+- PostgreSQL (포트 5432)
+- Redis (포트 6379)
+- Elasticsearch (포트 9200)
+- Kafka + Zookeeper (포트 9092)
+- Prometheus (포트 9090)
+- Grafana (포트 3000)
 
-Verify services are running:
+서비스 실행 확인:
 ```bash
 docker-compose ps
 ```
 
-### 2. Build and Run Application
+### 2. 애플리케이션 빌드 및 실행
 
 ```bash
-# Build
+# 빌드
 mvn clean install
 
-# Run
+# 실행
 mvn spring-boot:run
 ```
 
-The application will start on http://localhost:8080
+애플리케이션이 http://localhost:8080에서 시작됩니다
 
-### 3. Verify Application
+### 3. 애플리케이션 확인
 
 ```bash
-# Health check
+# 헬스 체크
 curl http://localhost:8080/api/health
 
-# Expected response:
+# 예상 응답:
 # {
 #   "status": "UP",
 #   "timestamp": "2025-11-15T13:49:03",
@@ -146,130 +146,130 @@ curl http://localhost:8080/api/health
 #   "version": "0.1.0"
 # }
 
-# Actuator health
+# Actuator 헬스
 curl http://localhost:8080/actuator/health
 
-# Prometheus metrics
+# Prometheus 메트릭
 curl http://localhost:8080/actuator/prometheus
 ```
 
-### 4. Access Monitoring
+### 4. 모니터링 접근
 
 - **Grafana**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
 - **Elasticsearch**: http://localhost:9200
 
-## Development
+## 개발
 
-### Running Tests
+### 테스트 실행
 
 ```bash
-# Run all tests
+# 모든 테스트 실행
 mvn test
 
-# Run with coverage
+# 커버리지와 함께 실행
 mvn clean verify
 
-# View coverage report
+# 커버리지 리포트 보기
 open target/site/jacoco/index.html
 ```
 
-### Code Coverage Target
+### 코드 커버리지 목표
 
-- Minimum: 80% line coverage (enforced by Jacoco)
-- Builds will fail if coverage drops below threshold
+- 최소: 80% 라인 커버리지 (Jacoco로 강제됨)
+- 커버리지가 임계값 아래로 떨어지면 빌드 실패
 
-### Database Migrations
+### 데이터베이스 마이그레이션
 
-Using Flyway for database version control:
+데이터베이스 버전 관리를 위해 Flyway 사용:
 
 ```bash
-# Migrations are in: src/main/resources/db/migration/
-# Format: V{version}__{description}.sql
-# Example: V1__create_users_table.sql
+# 마이그레이션 위치: src/main/resources/db/migration/
+# 형식: V{version}__{description}.sql
+# 예시: V1__create_users_table.sql
 
-# Migrations run automatically on application startup
+# 마이그레이션은 애플리케이션 시작 시 자동 실행
 ```
 
-### Profiles
+### 프로파일
 
-- **dev**: Development (default)
-  - SQL logging enabled
-  - Detailed error messages
-  - DevTools enabled
+- **dev**: 개발 (기본값)
+  - SQL 로깅 활성화
+  - 상세한 에러 메시지
+  - DevTools 활성화
 
-- **prod**: Production
-  - Optimized logging
-  - Security hardened
-  - Performance tuned
+- **prod**: 프로덕션
+  - 최적화된 로깅
+  - 보안 강화
+  - 성능 튜닝
 
-- **test**: Testing
-  - In-memory or test database
-  - Mock external services
+- **test**: 테스트
+  - 인메모리 또는 테스트 데이터베이스
+  - 외부 서비스 Mock
 
 ```bash
-# Run with specific profile
+# 특정 프로파일로 실행
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
-## API Documentation
+## API 문서
 
-API documentation will be available using OpenAPI 3.0 specification:
-- Location: `docs/api/openapi.yaml`
-- (To be added in Stage 1)
+OpenAPI 3.0 명세를 사용한 API 문서:
+- 위치: `docs/api/openapi.yaml`
+- (Stage 1에서 추가 예정)
 
-## Architecture
+## 아키텍처
 
-### Phase 1: Monolith (Current)
+### Phase 1: 모놀리스 (현재)
 
-Single Spring Boot application with domain-driven design:
-- Separate packages per domain (user, product, order, payment, inventory)
-- Shared PostgreSQL database with separate schemas
-- REST API with JWT authentication
+도메인 주도 설계를 사용한 단일 Spring Boot 애플리케이션:
+- 도메인별 별도 패키지 (user, product, order, payment, inventory)
+- 별도 스키마를 가진 공유 PostgreSQL 데이터베이스
+- JWT 인증을 사용한 REST API
 
-### Phase 2: Microservices (Future)
+### Phase 2: 마이크로서비스 (미래)
 
-Decomposition into independent services:
+독립적인 서비스로 분해:
 - user-service, product-service, order-service, payment-service, inventory-service
-- Service discovery and API Gateway
-- Event-driven communication via Kafka
+- 서비스 디스커버리 및 API Gateway
+- Kafka를 통한 이벤트 주도 통신
 
-## Key Performance Indicators (KPIs)
+## 주요 성능 지표 (KPI)
 
-All KPIs must be achieved:
+모든 KPI는 달성되어야 합니다:
 
-- API latency p99 ≤ 100ms (simple queries)
-- API latency p99 ≤ 200ms (complex queries)
-- System availability ≥ 99.9% (30-day period)
-- Error rate ≤ 1% (excluding 4xx)
-- Test coverage ≥ 80%
-- Security: No critical/high vulnerabilities
+- API 지연 p99 ≤ 100ms (단순 쿼리)
+- API 지연 p99 ≤ 200ms (복잡한 쿼리)
+- 시스템 가용성 ≥ 99.9% (30일 기간)
+- 에러율 ≤ 1% (4xx 제외)
+- 테스트 커버리지 ≥ 80%
+- 보안: 치명적/높은 취약점 없음
 
-## Security
+## 보안
 
-- **Authentication**: JWT + OAuth 2.0 (Kakao)
-- **Authorization**: Role-based access control (RBAC)
-- **Data Protection**: PII encryption at rest (AES-256)
-- **Transport**: TLS 1.3
-- **Compliance**: PIPA (Korean data protection law)
+- **인증**: JWT + OAuth 2.0 (Kakao)
+- **인가**: 역할 기반 접근 제어 (RBAC)
+- **데이터 보호**: 저장 시 PII 암호화 (AES-256)
+- **전송**: TLS 1.3
+- **규정 준수**: PIPA (한국 데이터 보호법)
 
-## Current Stage Progress
+## 현재 단계 진행
 
-- [x] Bootstrap complete
-- [ ] Stage 1: Monolith Foundation (4 weeks)
-- [ ] Stage 2: Observability (3 weeks)
-- [ ] Stage 3: Scale (6 weeks)
-- [ ] Stage 4: Reliability (4 weeks)
-- [ ] Stage 5: Microservices (7 weeks)
+- [x] Bootstrap 완료
+- [ ] Stage 1: 모놀리스 기반 (4주)
+- [ ] Stage 2: 관측성 (3주)
+- [ ] Stage 3: 규모 확장 (6주)
+- [ ] Stage 4: 안정성 (4주)
+- [ ] Stage 5: 마이크로서비스 (7주)
 
-**Phase 1 Target**: 24 weeks
-**Phase 2 Target**: +12 weeks (36 total)
+**Phase 1 목표**: 24주
+**Phase 2 목표**: +12주 (총 36주)
 
-## Contributing
+## 기여
 
-This is a portfolio/learning project following the specifications in CLAUDE.md.
+이것은 CLAUDE.md의 명세를 따르는 포트폴리오/학습 프로젝트입니다.
 
-### Commit Convention
+### 커밋 규칙
 
 ```
 <type>: <subject>
@@ -279,24 +279,24 @@ This is a portfolio/learning project following the specifications in CLAUDE.md.
 <footer>
 ```
 
-Types: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`
+타입: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`
 
-Example:
+예시:
 ```
-feat: add user registration endpoint
+feat: 사용자 등록 엔드포인트 추가
 
-Implement POST /api/users/register with email validation
-and password hashing using BCrypt.
+이메일 검증 및 BCrypt를 사용한 비밀번호 해싱을 포함한
+POST /api/users/register 구현.
 
 Closes #1
 ```
 
-## License
+## 라이선스
 
-This is a learning/portfolio project.
+이것은 학습/포트폴리오 프로젝트입니다.
 
-## Contact
+## 연락처
 
-- Project: Sagaline E-commerce Platform
-- Purpose: Backend Engineer Portfolio (Korea)
-- Stack: Spring Boot 3.x + PostgreSQL + Redis + Kafka
+- 프로젝트: Sagaline 전자상거래 플랫폼
+- 목적: 백엔드 엔지니어 포트폴리오 (한국)
+- 스택: Spring Boot 3.x + PostgreSQL + Redis + Kafka
