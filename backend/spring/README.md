@@ -1,5 +1,24 @@
 # Web Phase 1.5 – Spring 패턴 훈련 (2.0–2.6)
 
+**상태**: 📝 설계 완료 (Milestone 2.0 - 2.6)
+**기술 스택**: Spring Boot 3.x · Java 17 · JPA · PostgreSQL · Redis · Kafka · Elasticsearch
+
+---
+
+## 설계 문서
+
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
+
+- **[Milestone 2.0](design/milestone-2.0.md)**: Spring Boot 부트스트랩 & CI 베이스라인
+- **[Milestone 2.1](design/milestone-2.1.md)**: 레이어드 CRUD & 트랜잭션 패턴
+- **[Milestone 2.2](design/milestone-2.2.md)**: Team & 역할 기반 접근 제어 (RBAC)
+- **[Milestone 2.3](design/milestone-2.3.md)**: 배치, 통계, 캐시, 외부 API
+- **[Milestone 2.4](design/milestone-2.4.md)**: Elasticsearch 검색
+- **[Milestone 2.5](design/milestone-2.5.md)**: Kafka 비동기 이벤트 처리
+- **[Milestone 2.6](design/milestone-2.6.md)**: Docker, PostgreSQL, Redis 인프라
+
+---
+
 ## 개요
 
 **목적**

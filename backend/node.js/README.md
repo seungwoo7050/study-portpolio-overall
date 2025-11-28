@@ -1,6 +1,25 @@
 # Web Phase 1.5 - Node.js 패턴 훈련
 
+**상태**: ✅ 전체 완료 (N2.0 - N2.6)
+**기술 스택**: NestJS 10.x · TypeScript · Prisma · PostgreSQL · Redis · Kafka · Elasticsearch
+
 이 프로젝트는 NestJS를 사용한 Node.js 백엔드 패턴 훈련을 위한 Web Phase 1.5 마일스톤 (N2.0-N2.6)을 구현합니다.
+
+---
+
+## 설계 문서
+
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
+
+- **[N2.0](design/n2.0-bootstrap-ci.md)**: NestJS Bootstrap & CI 베이스라인
+- **[N2.1](design/n2.1-layered-crud.md)**: 레이어드 CRUD & 트랜잭션 패턴
+- **[N2.2](design/n2.2-team-rbac.md)**: Team & 역할 기반 접근 제어 (RBAC)
+- **[N2.3](design/n2.3-batch-stats-cache.md)**: 배치, 통계, 캐시, 외부 API
+- **[N2.4](design/n2.4-elasticsearch.md)**: Elasticsearch 검색
+- **[N2.5](design/n2.5-kafka-events.md)**: Kafka 비동기 이벤트 처리
+- **[N2.6](design/n2.6-production-infra.md)**: Docker, PostgreSQL, Redis 인프라
+
+---
 
 ## 현재 상태
 
