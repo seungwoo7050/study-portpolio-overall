@@ -1,5 +1,8 @@
 # VrewCraft - 웹 기반 동영상 편집기
 
+**상태**: ✅ Phase 3 완료 (프로덕션 준비)
+**기술 스택**: React 18 · Node.js 20 · TypeScript 5 · C++17 · FFmpeg C API
+
 <p align="center">
   <strong>깊이 있는 C++ 전문성, 현대적 웹 개발, 고성능 비디오 처리를 입증하는 프로덕션 품질 웹 비디오 편집기</strong>
 </p>
@@ -10,8 +13,32 @@
   <a href="#-아키텍처">아키텍처</a> •
   <a href="#-기술-스택">기술 스택</a> •
   <a href="#-성능">성능</a> •
-  <a href="#-문서">문서</a>
+  <a href="#-설계-문서">설계 문서</a>
 </p>
+
+---
+
+## 설계 문서
+
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
+
+**Phase 0 - Bootstrap**:
+- **[Phase 0.0](design/phase-0.0-project-setup.md)**: 프로젝트 기초 및 환경 설정
+
+**Phase 1 - 편집 기능**:
+- **[Phase 1.0](design/phase-1.0-upload-preview.md)**: 비디오 업로드 & 미리보기
+- **[Phase 1.1](design/phase-1.1-timeline-editor.md)**: 타임라인 에디터
+- **[Phase 1.2](design/phase-1.2-trim-split.md)**: 트림 & 분할 기능
+- **[Phase 1.3](design/phase-1.3-subtitle-speed.md)**: 자막 & 속도 조절
+
+**Phase 2 - C++ 성능 최적화**:
+- **[Phase 2.0](design/phase-2.0-native-addon.md)**: N-API 네이티브 애드온 기초
+- **[Phase 2.1](design/phase-2.1-thumbnail-extraction.md)**: 고성능 썸네일 추출
+- **[Phase 2.2](design/phase-2.2-metadata-analysis.md)**: 메타데이터 분석
+- **[Phase 2.3](design/phase-2.3-prometheus-monitoring.md)**: Prometheus 모니터링
+
+**Phase 3 - 프로덕션 완성도**:
+- **[Phase 3.0](design/phase-3.0-production-deployment.md)**: Docker 배포 & 문서화
 
 ---
 

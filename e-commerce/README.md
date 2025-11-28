@@ -1,6 +1,26 @@
 # Sagaline - 전자상거래 플랫폼
 
+**상태**: ✅ Bootstrap 완료
+**기술 스택**: Spring Boot 3.2 · Java 17 · PostgreSQL · Redis · Kafka · Elasticsearch
+
 한국 시장을 위한 프로덕션 품질 전자상거래 백엔드, 모놀리스에서 클라우드 네이티브 마이크로서비스로 진화.
+
+---
+
+## 설계 문서
+
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
+
+**Checkpoint: Core (Stage 0-4)**:
+- **[Stage 0](design/stage-0-bootstrap.md)**: Bootstrap - 프로젝트 기초 & CI/CD
+- **[Stage 1](design/stage-1-monolith.md)**: 모놀리스 기반 - 핵심 도메인 구현
+- **[Stage 2](design/stage-2-observability.md)**: 관측성 - Prometheus, Grafana, ELK
+- **[Stage 3](design/stage-3-scale.md)**: 규모 확장 - 캐시, 검색, 비동기
+- **[Stage 4](design/stage-4-reliability.md)**: 안정성 - 복원력, 장애 처리
+
+**Checkpoint: Scale (Stage 5-9)** - 설계 진행 중
+
+---
 
 ## 상태
 
