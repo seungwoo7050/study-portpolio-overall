@@ -1,6 +1,6 @@
 # 문서 3. React + 프론트엔드 ↔ 백엔드 연동 실전
 
-> 이 문서는 **Stage 1·2의 “React + 연동” 부분**을 채운다.
+> 이 문서는 **Stage 1·2의 “React + 연동" 부분**을 채운다.
 > Node/Express 기본, `/ping` / `/echo` / `/videos` 정도는 이미 구현되어 있다고 가정한다. (문서 2 참고)
 
 ---
@@ -615,7 +615,7 @@ Stage 1·2에서 실제로 쓰게 될 최소 문법만 정리한다.
 
 ### 3-1. JSX 기본 개념
 
-JSX는 “HTML 비슷하게 보이지만, 결국 JS 코드로 컴파일되는 문법 설탕”이다.
+JSX는 “HTML 비슷하게 보이지만, 결국 JS 코드로 컴파일되는 문법 설탕"이다.
 
 ```tsx
 // JSX
@@ -728,7 +728,7 @@ function VideoPlayer() {
 
 포인트:
 
-* `useRef`는 `{ current: T | null }` 형태의 “박스”를 반환
+* `useRef`는 `{ current: T | null }` 형태의 “박스"를 반환
 * `.current`에 넣어둔 값은 컴포넌트가 리렌더되어도 유지
 * DOM 조작, 타이머 ID 보관 등에 사용
 
@@ -1211,7 +1211,7 @@ export default App;
 
 ## 9. 선택: 업로드 이후 리스트 렌더링
 
-실제 서비스라면 “업로드한 영상 전체 리스트” 같은 화면이 필요하다.
+실제 서비스라면 “업로드한 영상 전체 리스트" 같은 화면이 필요하다.
 문서 2에서 만든 `/videos` API를 붙이면 된다.
 
 ### 8.1 `VideoList` 컴포넌트 (`components/VideoList.tsx`)
@@ -1284,16 +1284,16 @@ import { VideoList } from "./components/VideoList";
 ```
 
 백엔드에서 `/videos`에 업로드 결과를 기록하도록 설계했다면,
-새 업로드 후 `VideoList` 갱신 로직을 추가하면 된다(예: “새로고침” 버튼).
+새 업로드 후 `VideoList` 갱신 로직을 추가하면 된다(예: “새로고침" 버튼).
 
 ---
 
 ## 10. React에서 상태/렌더링 모델을 C 관점에서 정리
 
-C 경험자 기준으로, React의 핵심은 **“상태 기반 렌더링”**이다.
+C 경험자 기준으로, React의 핵심은 **“상태 기반 렌더링"**이다.
 
 * 상태(state)가 바뀌면 컴포넌트 함수가 다시 호출된다고 보면 된다.
-* `useState`를 “전역/정적 변수”라 생각하면 틀린다. **렌더링 사이에서 유지되는 값**이다.
+* `useState`를 “전역/정적 변수"라 생각하면 틀린다. **렌더링 사이에서 유지되는 값**이다.
 * `setState` 호출 → React가 다시 렌더 → JSX 반환 → DOM diff → 필요한 부분만 실제 DOM 갱신.
 
 간단히 대응하면:
@@ -1315,7 +1315,7 @@ C 경험자 기준으로, React의 핵심은 **“상태 기반 렌더링”**�
 
 ## 11. Stage 1·2 프론트 측 체크리스트
 
-이 문서 기준으로, 프론트 측에서 아래를 만족하면 Stage 1·2의 “React + 연동”은 최소 수준 통과로 본다.
+이 문서 기준으로, 프론트 측에서 아래를 만족하면 Stage 1·2의 “React + 연동"은 최소 수준 통과로 본다.
 
 * [ ] Vite + React + TypeScript를 이용해 기본 프로젝트를 생성하고 실행할 수 있다.
 * [ ] `App.tsx`에서 `ping()` API를 호출해 백엔드 `/ping` 결과를 화면에 표시할 수 있다.
@@ -1326,3 +1326,179 @@ C 경험자 기준으로, React의 핵심은 **“상태 기반 렌더링”**�
 
 여기까지가 수정/보완된 문서 3의 범위다.
 다음 문서는 C++/FFmpeg C API/애드온으로 내려가는 문서 4다.
+
+---
+
+## 12. High-Class Check: UX, 상태 복잡성, WebSocket 연동
+
+React + 백엔드 연동 단계에서 **“잘 돌아가긴 하는데, 지저분해지기 쉬운 지점"**만 짚는다. 
+
+---
+
+### 12.1 WebSocket 진행률 UI – “UX 다리 놓기"
+
+백엔드(v1.3)에서 이미 WebSocket 기반 진행률 이벤트를 쏜다고 가정한다. 
+
+React 쪽에서 고려해야 할 포인트:
+
+1. **명시적인 상태 머신**
+
+업로드/처리 과정은 대충 이런 상태를 가진다:
+
+```ts
+type JobStatus =
+  | 'idle'
+  | 'uploading'
+  | 'queued'
+  | 'processing'
+  | 'done'
+  | 'error';
+```
+
+* 가능하면 문자열 하드코딩 대신 **union 타입**으로 고정
+* 화면(버튼 비활성화, 스피너, 진행률바)은 이 상태에만 의존하게 만든다.
+
+2. **WebSocket 메시지 → 상태 업데이트**
+
+```ts
+interface ProgressData {
+  operationId: string;
+  operation: 'trim' | 'split' | 'process' | 'upload';
+  progress: number; // 0~100
+  message?: string;
+}
+```
+
+React에서는:
+
+* `useWebSocket`(custom hook) 내부에서 WebSocket 연결 + 자동 재연결 관리
+* `onmessage`에서 `ProgressData`를 파싱하고, 현재 보고 있는 jobId와 맞는 것만 반영
+* 진행률 바, 메시지, 토스트를 이 데이터에 연결
+
+3. **동일 작업에 대한 중복 이벤트 처리**
+
+* 동일한 `operationId`에 대해 progress 이벤트가 여러 번 올 수 있다.
+* 이전 `progress`보다 작아지는 값은 무시하거나, 로그 남기고 skip.
+
+---
+
+### 12.2 Context API로 상태 범위 줄이기
+
+C 개발자 기준으로 보면 `Context`는 “전역 struct" 느낌인데, 쓰는 방식은 약간 다르다.
+
+**원칙:**
+
+* 진짜로 여러 컴포넌트가 같이 써야 하는 상태만 Context에 넣는다.
+* API 응답 데이터 전체를 Context 하나에 몰아 넣지 않는다.
+* 파생 값(예: `currentTime / duration * 100`)은 Context에 넣지 않고, **계산해서 쓰는 쪽에서만** 계산한다.
+
+예시:
+
+```tsx
+interface PlayerState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+}
+
+interface PlayerContextValue {
+  state: PlayerState;
+  setState: React.Dispatch<React.SetStateAction<PlayerState>>;
+}
+
+const PlayerContext = createContext<PlayerContextValue | null>(null);
+```
+
+* `VideoPlayer`, `Timeline`, `HotkeyHandler` 등 재생과 직접 관련된 컴포넌트만 이 컨텍스트를 쓴다.
+* 프로젝트 목록, 편집 결과 리스트 등은 **별도 컨텍스트** 또는 로컬 상태를 쓴다.
+
+---
+
+### 12.3 로딩/에러/빈 상태를 명시적으로 설계하기
+
+“작동은 하는데, 에러나 빈 상태일 때 UI가 이상한" 상황을 피하려면,
+아예 타입을 이렇게 잡는 게 안전하다:
+
+```ts
+type Loadable<T> =
+  | { state: 'idle' }
+  | { state: 'loading' }
+  | { state: 'loaded'; data: T }
+  | { state: 'error'; error: string };
+```
+
+예를 들어 프로젝트 리스트:
+
+```ts
+const [projects, setProjects] = useState<Loadable<ProjectSummary[]>>({
+  state: 'idle',
+});
+
+useEffect(() => {
+  setProjects({ state: 'loading' });
+  fetch('/api/projects')
+    .then((r) => r.json())
+    .then((data) => setProjects({ state: 'loaded', data }))
+    .catch((err) =>
+      setProjects({ state: 'error', error: String(err) }),
+    );
+}, []);
+```
+
+렌더링:
+
+```tsx
+if (projects.state === 'loading') return <Spinner />;
+if (projects.state === 'error') return <ErrorBox message={projects.error} />;
+if (projects.state === 'loaded' && projects.data.length === 0)
+  return <EmptyState />;
+
+if (projects.state === 'loaded')
+  return <ProjectList projects={projects.data} />;
+
+return null;
+```
+
+→ 이렇게 하면 **“state를 전부 열거해서 처리"**하기 때문에,
+빠뜨린 상태가 있는지 한눈에 보인다.
+
+---
+
+### 12.4 서버 상태 / 클라이언트 상태 / 파생 상태 분리
+
+혼동되면 코드가 금방 지옥된다. 기준은 이렇게 잡으면 된다:
+
+* **서버 상태(server state)**
+
+  * 백엔드 API로부터 온 데이터
+  * 프로젝트 목록, 업로드 결과, 편집 결과 등
+* **클라이언트 로컬 상태(UI state)**
+
+  * 현재 선택된 프로젝트 ID
+  * 열려 있는 모달 ID
+  * 드래그 중인 타임라인 위치 등
+* **파생 상태(derived state)**
+
+  * `currentTime / duration`
+  * 타임라인에서의 픽셀 좌표 등
+
+원칙:
+
+1. 서버 상태는 가능하면 **한 곳에서 fetch**해서 아래로 props로 흘려보낸다.
+2. 동일 서버 상태를 여러 곳에서 다시 fetch 하지 말고, context나 상위 컴포넌트에서 한 번만 관리한다.
+3. 파생 상태는 원본 값에서 계산하고, **별도 useState로 중복 저장하지 않는다.**
+
+---
+
+### 12.5 “이 정도면 복잡해졌다" 체크 기준
+
+* 한 컴포넌트가 props로 10개 이상 값을 받고 있다.
+* 같은 API 응답을 여러 곳에서 fetch 하고 있다.
+* WebSocket 메시지 핸들러 안에서 `setState`가 여러 번 발생한다.
+* 한 상태가 바뀔 때, UI 여러 부분이 이해 안 되는 방식으로 같이 움직인다.
+
+이 중 2개 이상 해당되면:
+
+* **Context 분리**(재생/프로젝트/설정 등)
+* **커스텀 훅 도입**(예: `useVideoPlayer`, `useProjects`)
+  정도는 고려해야 한다.

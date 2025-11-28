@@ -47,7 +47,7 @@ int main() {
 }
 ```
 
-* `int& x` = “null이 될 수 없는 포인터” 느낌
+* `int& x` = “null이 될 수 없는 포인터" 느낌
 * 호출 시 `&a` 같은 건 안 붙이고 그냥 `increment(a);`
 * 함수 안에서 `x`를 수정하면 원본 `a`가 수정됨
 
@@ -68,7 +68,7 @@ void print(const std::string& s) {
 C에서:
 
 * `open` / `close`, `malloc` / `free`, `avformat_open_input` / `avformat_close_input` 같이 **쌍으로 관리해야 할 자원**이 많다.
-* C++에서는 이걸 **“객체의 생명주기”에 붙여 놓는 패턴**을 쓴다.
+* C++에서는 이걸 **“객체의 생명주기"에 붙여 놓는 패턴**을 쓴다.
 
 ```cpp
 class FileHandle {
@@ -147,9 +147,9 @@ void example() {
 
 특징:
 
-* “소유자는 딱 한 명”이라는 뜻
+* “소유자는 딱 한 명"이라는 뜻
 * 복사 불가(`=`, 복사 생성자 금지), 이동(`std::move`)만 가능
-* FFmpeg 포인터를 RAII로 감쌀 때 **“+ 커스텀 deleter”**와 함께 많이 사용
+* FFmpeg 포인터를 RAII로 감쌀 때 **“+ 커스텀 deleter"**와 함께 많이 사용
 
 ---
 
@@ -193,8 +193,8 @@ void example() {
 }
 ```
 
-* 복사가 아니라 “**이건 이제 저쪽이 가진다**”는 의미
-* 특히 `unique_ptr` 같이 “소유자 1개”인 타입에 필수
+* 복사가 아니라 “**이건 이제 저쪽이 가진다**"는 의미
+* 특히 `unique_ptr` 같이 “소유자 1개"인 타입에 필수
 
 ---
 
@@ -628,7 +628,7 @@ target_link_libraries(video_info
 
 * `add_executable(video_info ...)`
 
-  * “빌드 결과물 하나” 정의
+  * “빌드 결과물 하나" 정의
 * `target_include_directories`
 
   * 이 타겟 컴파일 시 사용할 `-I` 경로 지정
@@ -731,7 +731,7 @@ export async function handleGetVideoInfo(
 
 ## 7. (선택) N-API 네이티브 애드온 개요
 
-Stage 3에서 “성능/지연 줄이기”가 필요해지면, CLI 대신 **네이티브 애드온**을 고려하게 된다.
+Stage 3에서 “성능/지연 줄이기"가 필요해지면, CLI 대신 **네이티브 애드온**을 고려하게 된다.
 
 ### 7.1 구조 개념
 
@@ -862,13 +862,13 @@ run().catch((err) => {
 });
 ```
 
-이런 식으로 **p95 / p99 지연**을 숫자로 확인해두면, “애드온으로 갈지, CLI로도 충분한지” 판단하는 근거가 생긴다.
+이런 식으로 **p95 / p99 지연**을 숫자로 확인해두면, “애드온으로 갈지, CLI로도 충분한지" 판단하는 근거가 생긴다.
 
 ---
 
 ## 10. Stage 3 관점 체크리스트
 
-이 문서 기준으로, 아래를 스스로 구현/설명할 수 있으면 Stage 3의 “C++ / FFmpeg / 네이티브” 초입은 통과라고 봐도 된다.
+이 문서 기준으로, 아래를 스스로 구현/설명할 수 있으면 Stage 3의 “C++ / FFmpeg / 네이티브" 초입은 통과라고 봐도 된다.
 
 * [ ] C++에서 참조자, RAII, `std::string` / `std::vector`, `std::unique_ptr`, `using`, `std::move`, `auto` / range-for 개념을 예제 코드 수준에서 이해했다.
 * [ ] FFmpeg C API를 C++에서 호출하고, `AVFormatContext`, `AVStream`, `AVCodecParameters`를 이용해 비디오 스트림의 해상도/길이/codec 이름/FPS를 읽을 수 있다.
@@ -885,3 +885,164 @@ run().catch((err) => {
 * 필요하면 **네이티브 애드온**으로 한 단계 더 성능/구조 개선
 
 까지 전체 그림이 연결된 상태라고 보면 된다.
+
+---
+
+## 11. High-Class Check: 네이티브 코드 안정성, 디버깅, 보안
+
+C++ / FFmpeg C API / N-API 애드온 레벨에서 진짜로 터지는 부분만 다룬다. 
+
+---
+
+### 11.1 Segfault → Node 전체 크래시를 막는 최소 예외 처리
+
+N-API 애드온에서 **C++ 예외 / segfault**는 Node 프로세스 전체를 날려버린다.
+
+패턴:
+
+```cpp
+Napi::Value ExtractMetadata(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+
+  try {
+    // 1. 인자 검증
+    // 2. 실제 C++ 로직 호출
+    // 3. JS 객체로 변환 후 return
+  } catch (const std::exception& e) {
+    Napi::Error::New(env, e.what()).ThrowAsJavaScriptException();
+    return env.Null();
+  } catch (...) {
+    Napi::Error::New(env, "Unknown native error").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+}
+```
+
+**규칙:**
+
+* N-API 엔트리 포인트 바깥으로 예외가 절대 나가지 않게 한다.
+* 모든 public entry 함수는 `try/catch` 블록으로 감싸고, JS 예외로 변환한다.
+* C API 에러 코드는 **반드시** `std::runtime_error` 등으로 래핑 후 던진다.
+
+---
+
+### 11.2 Segfault 디버깅 플로우 (LLDB / GDB)
+
+1. **Node를 디버거로 실행**
+
+```bash
+lldb node
+(lldb) run dist/server.js
+# 또는
+gdb --args node dist/server.js
+```
+
+2. 크래시가 발생하면, `bt` / `backtrace` 로 C++ 스택을 확인
+
+* FFmpeg 함수 호출 이후 어디에서 터지는지 확인
+* RAII 포인터 해제 시점에서 잘못된 포인터가 쓰였는지 확인
+
+3. 가능하면 **core dump** 설정해서, 운영 환경에서 재현
+
+---
+
+### 11.3 메모리 누수 방지: RAII + Valgrind
+
+RAII로 대부분 막을 수 있지만, FFmpeg C API는 구조체 안에 또 다른 포인터를 들고 있어서 실수하기 쉽다. 
+
+* `AVFormatContext` → `avformat_close_input`
+* `AVCodecContext` → `avcodec_free_context`
+* `AVFrame` → `av_frame_free`
+* `AVPacket` → `av_packet_free`
+* `SwsContext` → `sws_freeContext`
+
+**RAII 타입으로 고정해두고, 직접 free를 호출하지 않는다.**
+
+```cpp
+using AVFramePtr = std::unique_ptr<AVFrame, AVFrameDeleter>;
+```
+
+추가로, 주기적으로 **Valgrind**로 전체를 한 번씩 돌려본다.
+
+```bash
+valgrind --leak-check=full --show-leak-kinds=all node dist/server.js
+```
+
+메모리 누수가 나오면:
+
+* 해당 포인터를 감싸는 RAII 래퍼가 있는지 확인
+* 예외 발생 시 코드 경로에서도 destructor가 호출되는지 확인
+
+---
+
+### 11.4 입력 검증: “JS가 준 값이라서 안전하다"는 착각 버리기
+
+JS에서 넘어오는 인자는 전부 **외부 입력**으로 취급해야 한다.
+
+```cpp
+if (info.Length() < 1 || !info[0].IsString()) {
+  Napi::TypeError::New(env, "Expected video path string").ThrowAsJavaScriptException();
+  return env.Null();
+}
+std::string path = info[0].As<Napi::String>().Utf8Value();
+
+if (path.size() > 4096) {
+  Napi::Error::New(env, "Path too long").ThrowAsJavaScriptException();
+  return env.Null();
+}
+```
+
+기본 방어선:
+
+* 타입 체크 (`IsString`, `IsNumber`, `IsArray` 등)
+* 길이 제한 (path, codec name 등)
+* 음수/NaN/무한대 값 필터
+* 파일 경로 내 `..`, `\0` 포함 여부 검사 (Path Traversal 방지)
+
+---
+
+### 11.5 ABI / 빌드 호환성 고려
+
+Native Addon은 **Node.js / OS / FFmpeg 버전**에 민감하다.
+
+* N-API를 쓰는 이유는 ABI를 어느 정도 안정화하려는 것
+* 그래도 빌드 타깃 Node 버전, FFmpeg 버전은 명시적으로 맞춰야 한다.
+
+실무 체크포인트:
+
+* addon이 로드 실패하면 (`require(...)` 시 에러)
+  → JS Fallback(예: fluent-ffmpeg, ffprobe)으로 자동 전환하는 코드 경로를 준비.
+* FFmpeg 버전에 따라 구조체/필드가 다른 경우
+  → `#if LIBAVUTIL_VERSION_INT >= ...` 형태로 분기 (이미 설계 문서에 있음). 
+
+---
+
+### 11.6 Crash 시 서비스 전체가 죽지 않게 하기
+
+아무리 방어해도, 네이티브 크래시는 언젠가 터질 수 있다.
+
+전략:
+
+1. **네이티브 기능을 “옵션"으로 취급**
+
+* 서버 시작 시, 애드온 로드에 실패하면 “네이티브 기능 비활성화 모드"로 전환
+* 해당 모드에서는 모든 메타데이터/썸네일 요청을 JS/CLI 구현으로 처리
+
+2. **Health Check에 Native 상태 포함**
+
+```json
+{
+  "status": "ok",
+  "native": {
+    "available": true,
+    "version": "2.0.0"
+  }
+}
+```
+
+3. **Feature Flag**
+
+* 환경 변수 또는 설정으로 “네이티브 경로 사용 여부"를 토글 가능하게 해둔다.
+* 문제 발생 시 재배포 없이 플래그만 내려서 JS 경로로 우회.
+
+

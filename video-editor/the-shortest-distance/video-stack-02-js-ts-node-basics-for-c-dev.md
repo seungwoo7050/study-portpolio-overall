@@ -1,6 +1,6 @@
 # 문서 2. C 개발자를 위한 JS/TS + Node 기본기
 
-> 이 문서는 **Stage 1 중 “JS/TS + Node” 부분**을 채우는 문서다.
+> 이 문서는 **Stage 1 중 “JS/TS + Node" 부분**을 채우는 문서다.
 > React 쪽은 문서 3에서 자세히 다룬다.
 
 ---
@@ -564,8 +564,8 @@ const arr = [1, 2, 3];
 
 C 기준으로 보면:
 
-* `int`, `double` 같은 **원시 타입 값**은 “값 복사” 느낌
-* 객체/배열은 “포인터 비슷한 참조” 느낌 (단, 진짜 포인터는 아님)
+* `int`, `double` 같은 **원시 타입 값**은 “값 복사" 느낌
+* 객체/배열은 “포인터 비슷한 참조" 느낌 (단, 진짜 포인터는 아님)
 
 ```js
 const a = { x: 1 };
@@ -594,7 +594,7 @@ o2.v = 20;
 console.log(o1.v, o2.v); // 20, 20
 ```
 
-React/Node에서 상태 관리할 때 **“객체/배열을 직접 바꾸지 말라(불변성)”**라는 말이 여기서 나온다.
+React/Node에서 상태 관리할 때 **“객체/배열을 직접 바꾸지 말라(불변성)"**라는 말이 여기서 나온다.
 
 ---
 
@@ -705,7 +705,7 @@ React에서:
 
 ### 3.2 truthy / falsy
 
-조건문에서 **“거짓으로 취급되는 값”**:
+조건문에서 **“거짓으로 취급되는 값"**:
 
 * `false`
 * `0`
@@ -778,9 +778,9 @@ console.log(c2()); // 1
 Node/브라우저에서 JS는 **싱글 스레드**다.
 
 * 오래 걸리는 I/O(파일, 네트워크 등)는 커널/런타임에 맡기고
-* JS 코드는 콜백/Promise를 통해 “나중에 결과를 받아서 처리”
+* JS 코드는 콜백/Promise를 통해 “나중에 결과를 받아서 처리"
 
-이벤트 루프는 “**할 일 큐에 쌓인 콜백들을 하나씩 꺼내 실행하는 루프**”라고 생각하면 된다.
+이벤트 루프는 “**할 일 큐에 쌓인 콜백들을 하나씩 꺼내 실행하는 루프**"라고 생각하면 된다.
 
 ### 4.2 콜백 기반
 
@@ -844,7 +844,7 @@ main().catch((err) => {
 
 ## 5. TypeScript 기초
 
-> TS는 “컴파일 타임 타입 시스템”이다.
+> TS는 “컴파일 타임 타입 시스템"이다.
 > 런타임에는 모두 JS로 변환되고 타입 정보는 사라진다.
 
 ### 5.1 타입 주석
@@ -885,7 +885,7 @@ type Status = "idle" | "loading" | "done" | "error";
 
 ### 5.3 구조적 타입 (structural typing)
 
-TS의 타입 시스템은 **“구조가 같으면 같은 타입”**이라는 개념이다.
+TS의 타입 시스템은 **“구조가 같으면 같은 타입"**이라는 개념이다.
 
 ```ts
 interface Video {
@@ -902,7 +902,7 @@ const v: Video = { id: "v1", title: "hello" };
 const c: Clip = v; // OK, 구조가 같아서 호환
 ```
 
-C++의 “다른 struct는 다른 타입”과는 다르다.
+C++의 “다른 struct는 다른 타입"과는 다르다.
 
 ### 5.4 `any` 피하기
 
@@ -944,7 +944,7 @@ function makeOk<T>(data: T): ApiResponse<T> {
 
 ### 5.6 타입 단언 (`as`)와 런타임 체크
 
-`as`는 **컴파일러에게만 “이 타입으로 취급해”라고 말하는 것**이다.
+`as`는 **컴파일러에게만 “이 타입으로 취급해"라고 말하는 것**이다.
 실제 값이 그 타입인지 **런타임에서 검증해주지 않는다.**
 
 ```ts
@@ -993,12 +993,12 @@ const v1: Video = { id: "1", title: "A" }; // 가능 (description 생략)
 #### `null` vs `undefined`
 
 * `undefined`: 아예 값이 없음, 미설정
-* `null`: “값이 없음”을 **명시**한 것
+* `null`: “값이 없음"을 **명시**한 것
 
 보통:
 
 * 외부 라이브러리 / JS 런타임: `undefined`를 많이 씀
-* API 설계에서 “존재하지 않음”을 명시하고 싶으면 `null`을 쓰는 경우도 있음
+* API 설계에서 “존재하지 않음"을 명시하고 싶으면 `null`을 쓰는 경우도 있음
 
 #### `== null` 체크
 
@@ -1023,7 +1023,7 @@ const title = video.title ?? "untitled";
 const tagList = response.data?.tags ?? [];
 ```
 
-이 패턴을 알면, “이 값이 없을 수도 있을 때”의 JS/TS 코드를 훨씬 읽기 쉬워진다.
+이 패턴을 알면, “이 값이 없을 수도 있을 때"의 JS/TS 코드를 훨씬 읽기 쉬워진다.
 
 ---
 
@@ -1053,14 +1053,14 @@ function handle(x: string | number) {
 }
 ```
 
-strict 모드에서 “이 값이 string인지 확실하냐?”라고 타입 에러가 뜰 때,
+strict 모드에서 “이 값이 string인지 확실하냐?"라고 타입 에러가 뜰 때,
 이런 식으로 조건문으로 좁혀서 해결하게 된다.
 
 ---
 
 ### 5.9 class 문법과 서비스 패턴
 
-Stage 2 이상에서 자주 쓰게 될 “서비스 클래스” 패턴.
+Stage 2 이상에서 자주 쓰게 될 “서비스 클래스" 패턴.
 
 ```ts
 class FFmpegService {
@@ -1091,7 +1091,7 @@ await service.trim("in.mp4", "out.mp4");
   * `public`: 어디서나 사용 가능 (디폴트)
   * `private`: 클래스 외부에서 접근 불가
   * `readonly`: 생성자에서 한 번만 할당 가능
-* “서비스 클래스 하나 = 도메인 로직 한 덩어리”
+* “서비스 클래스 하나 = 도메인 로직 한 덩어리"
 
   * 예: `FFmpegService`, `StorageService`, `WebSocketService`
 
@@ -1454,7 +1454,7 @@ curl http://localhost:3000/videos
 
 ## 10. (미리 맛보기) React에서 API 호출 한 번만
 
-React 상세는 문서 3에서 다루지만, Stage 1에서 최소한 “React → Node API 호출” 느낌은 보고 넘어가도 된다.
+React 상세는 문서 3에서 다루지만, Stage 1에서 최소한 “React → Node API 호출" 느낌은 보고 넘어가도 된다.
 
 ```tsx
 // 예: src/App.tsx
@@ -1481,7 +1481,7 @@ function App() {
 export default App;
 ```
 
-실제로는 CORS 설정 등 추가가 필요하지만, 여기서는 “React에서 백엔드 HTTP 호출 → 화면 표시” 흐름만 맛보기 차원에서 보여주는 정도로 끝낸다.
+실제로는 CORS 설정 등 추가가 필요하지만, 여기서는 “React에서 백엔드 HTTP 호출 → 화면 표시" 흐름만 맛보기 차원에서 보여주는 정도로 끝낸다.
 
 ---
 
@@ -1498,3 +1498,142 @@ export default App;
 
 여기까지가 문서 2에서 다루는 범위다.
 이 다음 단계에서, **문서 3**에서 React 쪽을 붙여서 실제로 화면과 서버가 연결된 구조를 완성하게 된다.
+
+---
+
+## 12. High-Class Check: 이벤트 루프 블로킹, 비동기 경계, 디버깅
+
+Node.js 쪽에서 “C 개발자 출신이 반드시 한 번씩은 밟는 지뢰"만 모은 섹션이다.
+
+---
+
+### 12.1 이벤트 루프를 블로킹하고 있지 않은가?
+
+Node.js는 **요청 처리 쓰레드가 1개**다.
+이 1개가 막히면 **모든 HTTP 요청, WebSocket, 타이머**가 한 번에 멈춘다.
+
+```ts
+// BAD: CPU 바운드 연산을 HTTP 핸들러에서 동기 루프로 처리
+app.get('/api/heavy', (_req, res) => {
+  let sum = 0;
+  for (let i = 0; i < 1_000_000_000; i++) {
+    sum += i;
+  }
+  res.json({ sum });
+});
+```
+
+이 코드를 배포하면, `/api/heavy`를 한 번 호출하는 순간:
+
+* 그 동안 **다른 사용자의 요청도 전부 대기**
+* WebSocket 핑/퐁, 진행률 브로드캐스트, health check까지 모두 멈춤
+
+**대원칙:**
+
+* **CPU 바운드** 작업은 절대 이벤트 루프에서 직접 돌리지 않는다.
+* Node main thread에서는 **I/O orchestration**만 한다.
+
+해결 옵션(프로젝트 기준):
+
+1. **Worker Threads 사용** (고성능, 같은 메모리 안)
+
+   * 영상 처리, 압축, 대규모 파싱 등 CPU-heavy 작업을 worker로 보낸다.
+2. **별도 프로세스 호출**
+
+   * 이미 설계된 `ffmpeg`, native CLI, C++ binary를 `child_process.spawn`으로 실행.
+3. **완전 다른 서비스로 분리**
+
+   * 아주 무거운 배치성 편집이라면, worker 서비스(큐 기반)로 분리.
+
+---
+
+### 12.2 “동기 함수인데 실제로는 블로킹?" – 숨은 위험 패턴
+
+아래 패턴이면 일단 의심해야 한다.
+
+* `fs.readFileSync`, `fs.writeFileSync`
+* `JSON.parse`에 수 MB 이상 문자열
+* 대용량 배열에 대한 정렬/집계 (`array.sort`, `reduce`로 수십만 개 처리)
+* 암호화 연산을 sync API로 호출 (예: `crypto.pbkdf2Sync`)
+
+**원칙:**
+
+* 라이브러리에 `xxxSync` 가 있으면, 일단 `xxx`(비동기 버전)가 있는지 먼저 찾는다.
+* “처리 시간이 길어질 수 있는 sync 호출"은 전부 비동기/worker로 밀어낸다.
+
+---
+
+### 12.3 CPU 작업을 어디에서 처리할지: 비동기 경계 설계
+
+HTTP 핸들러에서 할 일 / 안 할 일을 명확히 자른다.
+
+**핸들러에서만 할 일 (OK)**
+
+* 요청 파라미터 파싱/검증
+* DB/Redis/파일 I/O 호출 (비동기)
+* 비동기 잡 큐에 “일감" 넣기
+* WebSocket으로 진행률 이벤트 전달
+
+**핸들러에서 하면 안 되는 일 (NG)**
+
+* ffmpeg를 직접 동기적으로 실행
+* 큰 배열/버퍼를 루프 돌면서 CPU 연산
+* 압축/암호화 같은 고비용 연산을 sync로
+
+패턴 예시:
+
+```ts
+// OK: 실제 무거운 처리는 별도 서비스로 위임
+app.post('/api/trim', async (req, res) => {
+  const jobId = await jobQueue.enqueue({
+    type: 'trim',
+    payload: { /* ... */ },
+  });
+
+  res.json({ ok: true, jobId });
+});
+```
+
+Worker / 별도 프로세스 쪽에서:
+
+* 실제 ffmpeg 실행
+* WebSocketService에 `progress` 이벤트 쏘기 (v1.3 설계 참고) 
+
+---
+
+### 12.4 Node.js 디버깅: 최소 셋업
+
+C에서 gdb 쓰듯이, Node에서는 **Inspector + 콘솔 로그** 두 가지만 제대로 써도 충분하다.
+
+1. **인터프리터에 --inspect-brk 붙이기**
+
+```bash
+node --inspect-brk dist/server.js
+# 또는 tsx 사용 시
+node --inspect-brk node_modules/tsx/dist/cli.mjs watch src/server.ts
+```
+
+2. **Chrome / Edge에서 `chrome://inspect` 접속 → “inspect" 클릭**
+
+3. 브레이크포인트 설정:
+
+* 문제 있는 라우트의 핸들러 첫 줄
+* 비동기 체인의 `await` 직후 (응답 값 확인)
+* 에러 핸들러 내부
+
+4. **디버깅할 때 주의점**
+
+* `console.log`와 브레이크포인트를 섞어서 사용한다.
+* Promise 체인보다는 `async/await`로 풀어서 보는 편이 Node 디버깅에 유리하다.
+* catch 안에서 에러를 다시 던지지 않고 묻어버리는 코드 패턴을 피한다.
+
+---
+
+### 12.5 성능/블로킹 점검용 체크리스트
+
+* 특정 API 호출할 때 **전체 서비스가 굼떠지는지** 관찰
+  (로컬에서 `ab` / `wrk` / 단일 탭 여러 요청)
+* Node 프로세스 CPU 사용률이 1코어를 계속 100% 찍는다면,
+  **이벤트 루프에서 CPU 일을 하고 있을 가능성**이 높다.
+* `process.env.NODE_ENV !== 'production'` 인 상태에서만
+  무거운 디버깅 로깅/트레이싱을 켜고, 배포 시에는 반드시 끈다.

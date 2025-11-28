@@ -300,7 +300,7 @@ bool empty() const;
   * 잠금 상태에서 alive 세션들을 임시 리스트에 복사
   * 잠금 해제 후 리스트 순회하며 `send(message)`
   * sender를 제외할지 포함할지 선택
-    * **설계**: broadcast는 “타인에게만”, 본인 에코는 세션 쪽에서 따로 처리하거나, 반대로 `Room`에서 sender 포함 브로드캐스트로 통일해도 됨.
+    * **설계**: broadcast는 “타인에게만", 본인 에코는 세션 쪽에서 따로 처리하거나, 반대로 `Room`에서 sender 포함 브로드캐스트로 통일해도 됨.
     * 여기서는 **본인 포함 브로드캐스트**로 가정하고, 세션에서 따로 신경 안 쓰는 쪽이 단순함.
 * `empty`:
   * expired 세션 제외 후 멤버 수 0인지 확인
@@ -670,7 +670,7 @@ void leave_all_rooms();
 2. **기본 룸 기능**
    * A/B 두 탭에서 `lobby` JOIN → 시스템 메시지 확인
    * 서로 MSG 전송 → 양쪽 에코 확인
-   * LEAVE → 상대 탭에서 “left the room” 메시지
+   * LEAVE → 상대 탭에서 “left the room" 메시지
 3. **닉네임**
    * A: `NICK` 변경
    * B: 시스템 메시지 `"old is now known as new"` 확인
@@ -693,7 +693,7 @@ void leave_all_rooms();
    * JOIN 시 최근 N개 메시지 로딩 후 클라이언트에 쏴주기
 3. **샤딩 / 멀티 서버**
    * room 단위로 shard
-   * Room 대신 “로컬 or remote room handle” 추상화
+   * Room 대신 “로컬 or remote room handle" 추상화
 4. **닉네임 인덱스 최적화**
    * `unordered_map` 인덱스 추가해서 O(1)에 닉 중복 체크
 5. **메트릭/모니터링**
