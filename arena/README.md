@@ -1,76 +1,76 @@
-# Arena60 - Real-time 1v1 Duel Game Server
+# Arena60 - 실시간 1v1 대결 게임 서버
 
-Production-quality game server for Korean game industry portfolio. Built with C++17, Boost.Asio/Beast, PostgreSQL, and Prometheus.
+한국 게임 업계 포트폴리오용 프로덕션 품질 게임 서버. C++17, Boost.Asio/Beast, PostgreSQL, Prometheus로 구축.
 
-**Tech Stack**: C++17 · Boost 1.82+ · PostgreSQL 15 · Redis 7 · Protocol Buffers · Docker · Prometheus · WebSocket
-
----
-
-## Status: Checkpoint A Complete ✅
-
-- [x] **Checkpoint A**: 1v1 Duel Game (MVP 1.0-1.3)
-- [ ] Checkpoint B: 60-player Battle Royale
-- [ ] Checkpoint C: Esports Platform
+**기술 스택**: C++17 · Boost 1.82+ · PostgreSQL 15 · Redis 7 · Protocol Buffers · Docker · Prometheus · WebSocket
 
 ---
 
-## Features (Checkpoint A)
+## 상태: Checkpoint A 완료 ✅
 
-### MVP 1.0: Basic Game Server ✅
-- **WebSocket server** (Boost.Beast) - Real-time bidirectional communication
-- **60 TPS game loop** - Fixed-step deterministic physics (16.67ms per tick)
-- **Player movement** - WASD + mouse input, server-authoritative state sync
-- **PostgreSQL integration** - Session event recording with parameterized queries
-
-### MVP 1.1: Combat System ✅
-- **Projectile physics** - 30 m/s linear motion, 1.5s lifetime
-- **Collision detection** - Circle-circle intersection (projectile 0.2m vs player 0.5m)
-- **Damage system** - 20 HP per hit, 100 HP pool
-- **Combat log** - Ring buffer (32 events) for post-match analysis
-
-### MVP 1.2: Matchmaking ✅
-- **ELO-based matching** - ±100 initial tolerance, expands by ±25 every 5 seconds
-- **Queue management** - Deterministic pairing (oldest compatible first)
-- **Concurrent matches** - Supports 10+ simultaneous 1v1 games
-- **Metrics** - Prometheus histogram for wait time distribution
-
-### MVP 1.3: Statistics & Ranking ✅
-- **Post-match stats** - Shots, hits, accuracy, damage dealt/taken, kills, deaths
-- **ELO rating** - K-factor 25 adjustment per match
-- **Global leaderboard** - In-memory sorted by rating (Redis-ready)
-- **HTTP API** - JSON endpoints for profiles and rankings
+- [x] **Checkpoint A**: 1v1 대결 게임 (MVP 1.0-1.3)
+- [ ] Checkpoint B: 60인 배틀로얄
+- [ ] Checkpoint C: E-스포츠 플랫폼
 
 ---
 
-## Architecture
+## 기능 (Checkpoint A)
+
+### MVP 1.0: 기본 게임 서버 ✅
+- **WebSocket 서버** (Boost.Beast) - 실시간 양방향 통신
+- **60 TPS 게임 루프** - 고정 스텝 결정론적 물리 (틱당 16.67ms)
+- **플레이어 이동** - WASD + 마우스 입력, 서버 권위 상태 동기화
+- **PostgreSQL 통합** - 파라미터화된 쿼리를 사용한 세션 이벤트 기록
+
+### MVP 1.1: 전투 시스템 ✅
+- **발사체 물리** - 30 m/s 직선 이동, 1.5초 수명
+- **충돌 감지** - 원-원 교차 (발사체 0.2m vs 플레이어 0.5m)
+- **데미지 시스템** - 히트당 20 HP, 100 HP 풀
+- **전투 로그** - 사후 분석용 링 버퍼 (32 이벤트)
+
+### MVP 1.2: 매치메이킹 ✅
+- **ELO 기반 매칭** - ±100 초기 허용 범위, 5초마다 ±25 확대
+- **큐 관리** - 결정론적 페어링 (가장 오래된 호환 플레이어 우선)
+- **동시 매치** - 10+ 동시 1v1 게임 지원
+- **메트릭** - 대기 시간 분포 Prometheus 히스토그램
+
+### MVP 1.3: 통계 & 랭킹 ✅
+- **사후 매치 통계** - 발사, 적중, 정확도, 데미지 가/피, 킬, 데스
+- **ELO 레이팅** - 매치당 K-factor 25 조정
+- **글로벌 리더보드** - 레이팅 순 인메모리 정렬 (Redis 준비 완료)
+- **HTTP API** - 프로필 및 랭킹용 JSON 엔드포인트
+
+---
+
+## 아키텍처
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Clients                              │
-│                  (WebSocket connections)                     │
+│                         클라이언트들                           │
+│                  (WebSocket 연결)                             │
 └─────────────────────┬───────────────────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────────────────┐
 │              WebSocketServer (Boost.Beast)                   │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │   GameLoop (60 TPS)                                    │ │
-│  │     ├─ GameSession (2 players, projectiles, combat)   │ │
-│  │     ├─ Tick (16.67ms fixed-step)                      │ │
-│  │     └─ State broadcast                                │ │
+│  │     ├─ GameSession (2 플레이어, 발사체, 전투)          │ │
+│  │     ├─ Tick (16.67ms 고정 스텝)                       │ │
+│  │     └─ 상태 브로드캐스트                              │ │
 │  └────────────────────────────────────────────────────────┘ │
 │                                                              │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │   Matchmaker                                           │ │
-│  │     ├─ MatchQueue (ELO bucketing)                     │ │
-│  │     ├─ RunMatching (tolerance expansion)              │ │
+│  │     ├─ MatchQueue (ELO 버킷화)                        │ │
+│  │     ├─ RunMatching (허용 범위 확대)                   │ │
 │  │     └─ MatchNotificationChannel                       │ │
 │  └────────────────────────────────────────────────────────┘ │
 │                                                              │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │   PlayerProfileService                                 │ │
-│  │     ├─ RecordMatch (stats aggregation)                │ │
+│  │     ├─ RecordMatch (통계 집계)                        │ │
 │  │     ├─ EloRatingCalculator (K=25)                     │ │
-│  │     └─ LeaderboardStore (sorted by rating)            │ │
+│  │     └─ LeaderboardStore (레이팅순 정렬)               │ │
 │  └────────────────────────────────────────────────────────┘ │
 └─────────────────────┬───────────────────────────────────────┘
                       │
@@ -78,104 +78,104 @@ Production-quality game server for Korean game industry portfolio. Built with C+
         │             │             │
 ┌───────▼──────┐ ┌───▼────────┐ ┌──▼──────────┐
 │ PostgreSQL   │ │ Redis      │ │ Prometheus  │
-│ (Sessions)   │ │ (Queue)    │ │ (Metrics)   │
+│ (세션)       │ │ (큐)       │ │ (메트릭)    │
 └──────────────┘ └────────────┘ └─────────────┘
 ```
 
-**Design**: Clean Architecture with dependency inversion
-**Threading**: Game loop on dedicated thread, mutex-protected shared state
-**Network**: Asynchronous I/O with Boost.Asio, WebSocket text frames
-**Storage**: PostgreSQL for persistence, in-memory for real-time data
+**설계**: 의존성 역전을 사용한 클린 아키텍처
+**스레딩**: 전용 스레드의 게임 루프, 뮤텍스 보호 공유 상태
+**네트워크**: Boost.Asio 비동기 I/O, WebSocket 텍스트 프레임
+**스토리지**: 영속성을 위한 PostgreSQL, 실시간 데이터를 위한 인메모리
 
 ---
 
-## Performance Benchmarks
+## 성능 벤치마크
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Tick rate variance | ≤ 1.0 ms | **0.04 ms** | ✅ |
-| WebSocket latency (p99) | ≤ 20 ms | **18.3 ms** | ✅ |
-| Combat tick duration (avg) | < 0.5 ms | **0.31 ms** | ✅ |
-| Matchmaking (200 players) | ≤ 2 ms | **≤ 2 ms** | ✅ |
-| Profile service (100 matches) | ≤ 5 ms | **< 1 ms** | ✅ |
+| 메트릭 | 목표 | 실제 | 상태 |
+|--------|------|------|------|
+| 틱 레이트 분산 | ≤ 1.0 ms | **0.04 ms** | ✅ |
+| WebSocket 지연 (p99) | ≤ 20 ms | **18.3 ms** | ✅ |
+| 전투 틱 지속 시간 (평균) | < 0.5 ms | **0.31 ms** | ✅ |
+| 매치메이킹 (200 플레이어) | ≤ 2 ms | **≤ 2 ms** | ✅ |
+| 프로필 서비스 (100 매치) | ≤ 5 ms | **< 1 ms** | ✅ |
 
-**Test Environment**: Ubuntu 22.04, 4-8 vCPUs, CMake Release build
+**테스트 환경**: Ubuntu 22.04, 4-8 vCPU, CMake Release 빌드
 
 ---
 
-## Quick Start
+## 빠른 시작
 
-### Prerequisites
+### 필수 요구사항
 
-- **C++ Compiler**: GCC 11+ or Clang 14+
+- **C++ 컴파일러**: GCC 11+ 또는 Clang 14+
 - **CMake**: 3.20+
-- **vcpkg**: For dependency management
-- **Docker**: For PostgreSQL, Redis, Prometheus
+- **vcpkg**: 의존성 관리용
+- **Docker**: PostgreSQL, Redis, Prometheus용
 
-### 1. Install Dependencies (vcpkg)
+### 1. 의존성 설치 (vcpkg)
 
 ```bash
-# Install vcpkg if not already installed
+# vcpkg가 설치되지 않은 경우 설치
 git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 ./bootstrap-vcpkg.sh
 export VCPKG_ROOT=$(pwd)
 
-# Install packages
+# 패키지 설치
 ./vcpkg install boost-asio boost-beast libpq protobuf
 ```
 
-### 2. Start Infrastructure
+### 2. 인프라 시작
 
 ```bash
 cd deployments/docker
 docker-compose up -d
 
-# Verify services
+# 서비스 확인
 docker ps  # PostgreSQL:5432, Redis:6379, Prometheus:9090, Grafana:3000
 ```
 
-### 3. Build Server
+### 3. 서버 빌드
 
 ```bash
 cd server
 mkdir build && cd build
 
-# Configure with vcpkg
+# vcpkg로 구성
 cmake .. -DCMAKE_BUILD_TYPE=Release
 
-# Build (add -j$(nproc) for parallel build)
+# 빌드 (병렬 빌드를 위해 -j$(nproc) 추가)
 make -j$(nproc)
 ```
 
-### 4. Run Tests
+### 4. 테스트 실행
 
 ```bash
-# Run all tests
+# 모든 테스트 실행
 ctest --output-on-failure
 
-# Run specific test suites
+# 특정 테스트 스위트 실행
 ctest -R UnitTests
 ctest -R IntegrationTests
 ctest -R PerformanceTests
 
-# Run with verbose output
+# 상세 출력과 함께 실행
 ctest -V
 ```
 
-### 5. Run Server
+### 5. 서버 실행
 
 ```bash
-# Set environment variables (optional)
+# 환경 변수 설정 (선택사항)
 export POSTGRES_DSN="host=localhost port=5432 dbname=arena60 user=arena60 password=arena60"
 export WEBSOCKET_PORT=8080
 export HTTP_PORT=8081
 export TICK_RATE=60
 
-# Run server
+# 서버 실행
 ./arena60_server
 
-# Server logs
+# 서버 로그
 [INFO] WebSocket server listening on 0.0.0.0:8080
 [INFO] HTTP server listening on 0.0.0.0:8081
 [INFO] Game loop started at 60 TPS
@@ -184,97 +184,97 @@ export TICK_RATE=60
 
 ---
 
-## Testing the Server
+## 서버 테스트
 
-### WebSocket Protocol (Port 8080)
+### WebSocket 프로토콜 (포트 8080)
 
-**Client → Server (Input)**:
+**클라이언트 → 서버 (입력)**:
 ```
 input <player_id> <seq> <up> <down> <left> <right> <mouse_x> <mouse_y>
 ```
 
-Example:
+예시:
 ```
 input player1 0 1 0 0 0 150.5 200.0
 ```
 
-**Server → Client (State)**:
+**서버 → 클라이언트 (상태)**:
 ```
 state <player_id> <x> <y> <angle> <tick>
 ```
 
-Example:
+예시:
 ```
 state player1 105.0 200.0 0.785 123
 ```
 
-**Server → Client (Death)**:
+**서버 → 클라이언트 (사망)**:
 ```
 death <player_id> <tick>
 ```
 
-### Option 1: wscat (Quick Test)
+### 옵션 1: wscat (빠른 테스트)
 
-**Install**:
+**설치**:
 ```bash
 npm install -g wscat
 ```
 
-**Usage**:
+**사용법**:
 ```bash
-# Connect to server
+# 서버에 연결
 wscat -c ws://localhost:8080
 
-# Send movement input (W key pressed, mouse at 150, 200)
+# 이동 입력 전송 (W 키 눌림, 마우스 위치 150, 200)
 > input player1 0 1 0 0 0 150.5 200.0
 
-# Server responds with state
+# 서버가 상태로 응답
 < state player1 100.0 200.0 0.0 60
 < state player1 105.0 200.0 0.0 61
 < state player1 110.0 200.0 0.0 62
 
-# Send fire input (mouse click at 300, 100)
+# 발사 입력 전송 (마우스 클릭, 위치 300, 100)
 > input player1 1 0 0 0 0 300.0 100.0
 
-# Server responds with state
+# 서버가 상태로 응답
 < state player1 115.0 200.0 1.047 63
 ```
 
-**Input Format**:
-- `player_id`: Unique player identifier (e.g., "player1")
-- `seq`: Sequence number (incremental, for debugging)
-- `up down left right`: Movement keys (1 = pressed, 0 = released)
-- `mouse_x mouse_y`: Mouse cursor position (world coordinates)
+**입력 형식**:
+- `player_id`: 고유 플레이어 식별자 (예: "player1")
+- `seq`: 시퀀스 번호 (증가, 디버깅용)
+- `up down left right`: 이동 키 (1 = 눌림, 0 = 놓임)
+- `mouse_x mouse_y`: 마우스 커서 위치 (월드 좌표)
 
-### Option 2: Python Test Client (Automated)
+### 옵션 2: Python 테스트 클라이언트 (자동화)
 
-**Install**:
+**설치**:
 ```bash
 pip install websockets
 ```
 
-**Usage**:
+**사용법**:
 ```bash
-# Run automated test
+# 자동화된 테스트 실행
 python tools/test_client.py
 
-# Run with custom player ID
+# 사용자 정의 플레이어 ID로 실행
 python tools/test_client.py --player player2
 
-# Run multiple clients (stress test)
+# 여러 클라이언트 실행 (스트레스 테스트)
 python tools/test_client.py --clients 10
 ```
 
-See `tools/README.md` for detailed usage.
+자세한 사용법은 `tools/README.md`를 참조하세요.
 
-### HTTP API (Port 8081)
+### HTTP API (포트 8081)
 
-**Get Player Profile**:
+**플레이어 프로필 조회**:
 ```bash
 curl http://localhost:8081/profiles/player1
 ```
 
-Response:
+응답:
 ```json
 {
   "player_id": "player1",
@@ -291,12 +291,12 @@ Response:
 }
 ```
 
-**Get Leaderboard**:
+**리더보드 조회**:
 ```bash
 curl http://localhost:8081/leaderboard?limit=10
 ```
 
-Response:
+응답:
 ```json
 [
   {
@@ -309,236 +309,236 @@ Response:
 ]
 ```
 
-**Prometheus Metrics**:
+**Prometheus 메트릭**:
 ```bash
 curl http://localhost:8081/metrics
 ```
 
 ---
 
-## Monitoring
+## 모니터링
 
-### Prometheus Metrics
+### Prometheus 메트릭
 
-Access at `http://localhost:8081/metrics`
+`http://localhost:8081/metrics`에서 접근
 
-**Game Loop**:
-- `game_tick_rate` - Current tick rate (Hz)
-- `game_tick_duration_seconds` - Tick execution time
+**게임 루프**:
+- `game_tick_rate` - 현재 틱 레이트 (Hz)
+- `game_tick_duration_seconds` - 틱 실행 시간
 
 **WebSocket**:
-- `websocket_connections_total` - Active connections
-- `game_sessions_active` - Concurrent games
-- `player_actions_total` - Total inputs processed
+- `websocket_connections_total` - 활성 연결
+- `game_sessions_active` - 동시 게임
+- `player_actions_total` - 처리된 입력 총합
 
-**Combat**:
-- `projectiles_active` - Active projectiles
-- `projectiles_spawned_total` - Total projectiles fired
-- `projectiles_hits_total` - Total hits
-- `players_dead_total` - Total deaths
+**전투**:
+- `projectiles_active` - 활성 발사체
+- `projectiles_spawned_total` - 발사된 총 발사체
+- `projectiles_hits_total` - 총 히트
+- `players_dead_total` - 총 사망
 
-**Matchmaking**:
-- `matchmaking_queue_size` - Players waiting
-- `matchmaking_matches_total` - Matches created
-- `matchmaking_wait_seconds_bucket` - Wait time histogram
+**매치메이킹**:
+- `matchmaking_queue_size` - 대기 중인 플레이어
+- `matchmaking_matches_total` - 생성된 매치
+- `matchmaking_wait_seconds_bucket` - 대기 시간 히스토그램
 
-**Profile**:
-- `player_profiles_total` - Total profiles
-- `leaderboard_entries_total` - Leaderboard size
-- `matches_recorded_total` - Total matches recorded
-- `rating_updates_total` - Total ELO updates
+**프로필**:
+- `player_profiles_total` - 총 프로필
+- `leaderboard_entries_total` - 리더보드 크기
+- `matches_recorded_total` - 기록된 총 매치
+- `rating_updates_total` - 총 ELO 업데이트
 
-### Grafana Dashboard
+### Grafana 대시보드
 
-Access at `http://localhost:3000` (default: admin/admin)
+`http://localhost:3000`에서 접근 (기본값: admin/admin)
 
-Add Prometheus data source: `http://prometheus:9090`
-
----
-
-## Testing Guide
-
-### Unit Tests (13 files)
-
-Test individual components in isolation:
-- `test_game_loop.cpp` - Tick rate accuracy, metrics
-- `test_game_session.cpp` - Player management, movement
-- `test_combat.cpp` - Collision, damage, death
-- `test_projectile.cpp` - Physics, expiration
-- `test_matchmaker.cpp` - ELO matching, tolerance
-- `test_player_profile_service.cpp` - Stats aggregation, ELO
-
-### Integration Tests (4 files)
-
-Test end-to-end workflows:
-- `test_websocket_server.cpp` - Client connection, state sync
-- `test_websocket_combat.cpp` - Full combat scenario
-- `test_matchmaker_flow.cpp` - 20 players → 10 matches
-- `test_profile_http.cpp` - HTTP endpoints
-
-### Performance Tests (4 files)
-
-Validate KPI targets:
-- `test_tick_variance.cpp` - Tick stability (≤1ms variance)
-- `test_projectile_perf.cpp` - Collision performance (<0.5ms)
-- `test_matchmaking_perf.cpp` - Matchmaking speed (≤2ms)
-- `test_profile_service_perf.cpp` - Stats recording (≤5ms)
-
-**Coverage**: ~85% estimated (21 test files for 18 source files)
+Prometheus 데이터 소스 추가: `http://prometheus:9090`
 
 ---
 
-## Project Structure
+## 테스트 가이드
+
+### 유닛 테스트 (13개 파일)
+
+개별 컴포넌트를 격리하여 테스트:
+- `test_game_loop.cpp` - 틱 레이트 정확도, 메트릭
+- `test_game_session.cpp` - 플레이어 관리, 이동
+- `test_combat.cpp` - 충돌, 데미지, 사망
+- `test_projectile.cpp` - 물리, 만료
+- `test_matchmaker.cpp` - ELO 매칭, 허용 범위
+- `test_player_profile_service.cpp` - 통계 집계, ELO
+
+### 통합 테스트 (4개 파일)
+
+End-to-End 워크플로우 테스트:
+- `test_websocket_server.cpp` - 클라이언트 연결, 상태 동기화
+- `test_websocket_combat.cpp` - 전체 전투 시나리오
+- `test_matchmaker_flow.cpp` - 20명 플레이어 → 10 매치
+- `test_profile_http.cpp` - HTTP 엔드포인트
+
+### 성능 테스트 (4개 파일)
+
+KPI 목표 검증:
+- `test_tick_variance.cpp` - 틱 안정성 (≤1ms 분산)
+- `test_projectile_perf.cpp` - 충돌 성능 (<0.5ms)
+- `test_matchmaking_perf.cpp` - 매치메이킹 속도 (≤2ms)
+- `test_profile_service_perf.cpp` - 통계 기록 (≤5ms)
+
+**커버리지**: ~85% 추정 (18개 소스 파일에 대해 21개 테스트 파일)
+
+---
+
+## 프로젝트 구조
 
 ```
 arena60/
 ├── server/
-│   ├── include/arena60/          # Public headers
+│   ├── include/arena60/          # 공개 헤더
 │   │   ├── core/                 # GameLoop, Config
 │   │   ├── game/                 # GameSession, Combat, Projectile
-│   │   ├── network/              # WebSocketServer, HTTP routers
+│   │   ├── network/              # WebSocketServer, HTTP 라우터
 │   │   ├── matchmaking/          # Matchmaker, Queue
 │   │   ├── stats/                # ProfileService, Leaderboard
 │   │   └── storage/              # PostgresStorage
-│   ├── src/                      # Implementation (.cpp)
+│   ├── src/                      # 구현 (.cpp)
 │   ├── tests/
-│   │   ├── unit/                 # 13 unit tests
-│   │   ├── integration/          # 4 integration tests
-│   │   └── performance/          # 4 performance benchmarks
+│   │   ├── unit/                 # 13개 유닛 테스트
+│   │   ├── integration/          # 4개 통합 테스트
+│   │   └── performance/          # 4개 성능 벤치마크
 │   └── CMakeLists.txt
 ├── deployments/
 │   └── docker/
 │       └── docker-compose.yml    # PostgreSQL, Redis, Prometheus, Grafana
 ├── docs/
-│   ├── mvp-specs/                # Detailed MVP requirements
-│   └── evidence/                 # Performance reports, CI logs
+│   ├── mvp-specs/                # 상세 MVP 요구사항
+│   └── evidence/                 # 성능 리포트, CI 로그
 ├── .meta/
-│   └── state.yml                 # Project version tracking
-├── CLAUDE.md                     # Project instructions
-└── README.md                     # This file
+│   └── state.yml                 # 프로젝트 버전 추적
+├── CLAUDE.md                     # 프로젝트 지침
+└── README.md                     # 이 파일
 ```
 
 ---
 
-## Code Quality
+## 코드 품질
 
-**Standards**:
-- **C++ 17** with modern idioms (RAII, smart pointers, move semantics)
-- **Thread-safety**: `std::mutex`, `std::atomic` for concurrent access
-- **Const-correctness**: `const` methods, `noexcept` where applicable
-- **Error handling**: Explicit error checking, no exceptions in hot paths
-- **Naming**: `PascalCase` (classes), `camelCase` (functions), `snake_case` (variables)
+**표준**:
+- **C++ 17** 모던 관용구 사용 (RAII, 스마트 포인터, 이동 시맨틱스)
+- **스레드 안전성**: 동시 접근을 위한 `std::mutex`, `std::atomic`
+- **Const 정확성**: `const` 메서드, 가능한 경우 `noexcept`
+- **에러 처리**: 명시적 에러 확인, 핫 패스에서 예외 미사용
+- **네이밍**: `PascalCase` (클래스), `camelCase` (함수), `snake_case` (변수)
 
-**Linting**:
+**린팅**:
 ```bash
-# Format check (clang-format)
+# 포맷 검사 (clang-format)
 find server/src server/include -name "*.cpp" -o -name "*.h" | xargs clang-format -n --Werror
 
-# Static analysis (clang-tidy, if available)
+# 정적 분석 (clang-tidy, 가능한 경우)
 clang-tidy server/src/*.cpp -- -Iserver/include
 ```
 
 ---
 
-## Documentation
+## 문서
 
-### MVP Specifications
-- `docs/mvp-specs/mvp-1.0.md` - Basic game server
-- `docs/mvp-specs/mvp-1.1.md` - Combat system
-- `docs/mvp-specs/mvp-1.2.md` - Matchmaking
-- `docs/mvp-specs/mvp-1.3.md` - Statistics & ranking
+### MVP 명세
+- `docs/mvp-specs/mvp-1.0.md` - 기본 게임 서버
+- `docs/mvp-specs/mvp-1.1.md` - 전투 시스템
+- `docs/mvp-specs/mvp-1.2.md` - 매치메이킹
+- `docs/mvp-specs/mvp-1.3.md` - 통계 & 랭킹
 
-### Evidence Packs
-- `docs/evidence/mvp-1.0/` - Performance reports, CI logs, metrics
-- `docs/evidence/mvp-1.1/` - Combat performance benchmarks
-- `docs/evidence/mvp-1.2/` - Matchmaking throughput tests
-- `docs/evidence/mvp-1.3/` - Profile service benchmarks
-
----
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POSTGRES_DSN` | `host=localhost...` | PostgreSQL connection string |
-| `WEBSOCKET_PORT` | `8080` | WebSocket server port |
-| `HTTP_PORT` | `8081` | HTTP API and metrics port |
-| `TICK_RATE` | `60` | Game loop tick rate (TPS) |
+### 증거 팩
+- `docs/evidence/mvp-1.0/` - 성능 리포트, CI 로그, 메트릭
+- `docs/evidence/mvp-1.1/` - 전투 성능 벤치마크
+- `docs/evidence/mvp-1.2/` - 매치메이킹 처리량 테스트
+- `docs/evidence/mvp-1.3/` - 프로필 서비스 벤치마크
 
 ---
 
-## Troubleshooting
+## 환경 변수
 
-### Build Errors
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `POSTGRES_DSN` | `host=localhost...` | PostgreSQL 연결 문자열 |
+| `WEBSOCKET_PORT` | `8080` | WebSocket 서버 포트 |
+| `HTTP_PORT` | `8081` | HTTP API 및 메트릭 포트 |
+| `TICK_RATE` | `60` | 게임 루프 틱 레이트 (TPS) |
 
-**CMake cannot find Boost**:
+---
+
+## 문제 해결
+
+### 빌드 오류
+
+**CMake가 Boost를 찾을 수 없음**:
 ```bash
 export VCPKG_ROOT=/path/to/vcpkg
 cmake .. -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
-**Linker errors (libpq)**:
+**링커 오류 (libpq)**:
 ```bash
-# Install PostgreSQL client library
+# PostgreSQL 클라이언트 라이브러리 설치
 sudo apt-get install libpq-dev  # Ubuntu/Debian
 brew install libpq              # macOS
 ```
 
-### Runtime Errors
+### 런타임 오류
 
-**PostgreSQL connection failed**:
+**PostgreSQL 연결 실패**:
 ```bash
-# Check PostgreSQL is running
+# PostgreSQL 실행 확인
 docker ps | grep postgres
 
-# Test connection
+# 연결 테스트
 psql -h localhost -p 5432 -U arena60 -d arena60
 ```
 
-**Port already in use**:
+**포트가 이미 사용 중**:
 ```bash
-# Change ports
+# 포트 변경
 export WEBSOCKET_PORT=8888
 export HTTP_PORT=8889
 ```
 
 ---
 
-## Next Steps (Checkpoint B)
+## 다음 단계 (Checkpoint B)
 
-**MVP 2.0**: 60-player Battle Royale
-- Scale to 60 concurrent players
-- Spatial partitioning (quadtree)
-- Object pooling (≥90% reuse)
-- Interest management (packet filtering)
-- Kafka event pipeline
+**MVP 2.0**: 60인 배틀로얄
+- 60명의 동시 플레이어로 확장
+- 공간 분할 (쿼드트리)
+- 객체 풀링 (≥90% 재사용)
+- 관심 관리 (패킷 필터링)
+- Kafka 이벤트 파이프라인
 
-**Target completion**: 10-12 weeks
-
----
-
-## Tech Stack Rationale
-
-| Technology | Reason |
-|------------|--------|
-| **C++17** | Industry standard for game servers (Nexon, Krafton, Netmarble) |
-| **Boost.Asio/Beast** | Production-grade async I/O, WebSocket support |
-| **PostgreSQL** | ACID guarantees for persistent data |
-| **Redis** | Fast in-memory cache for matchmaking queues |
-| **Prometheus** | Industry-standard metrics and monitoring |
-| **Protocol Buffers** | Efficient binary serialization (ready for future use) |
-| **Docker** | Consistent dev/test environment |
+**목표 완료**: 10-12주
 
 ---
 
-## License
+## 기술 스택 근거
 
-This is a portfolio project. Code is provided as-is for demonstration purposes.
+| 기술 | 이유 |
+|------|------|
+| **C++17** | 게임 서버 업계 표준 (Nexon, Krafton, Netmarble) |
+| **Boost.Asio/Beast** | 프로덕션급 비동기 I/O, WebSocket 지원 |
+| **PostgreSQL** | 영속 데이터를 위한 ACID 보장 |
+| **Redis** | 매치메이킹 큐를 위한 빠른 인메모리 캐시 |
+| **Prometheus** | 업계 표준 메트릭 및 모니터링 |
+| **Protocol Buffers** | 효율적인 바이너리 직렬화 (향후 사용 준비) |
+| **Docker** | 일관된 개발/테스트 환경 |
 
 ---
 
-## Contact
+## 라이선스
 
-**Project**: Arena60 - Phase 2
-**Target**: Korean Game Server Developer positions (Nexon, Krafton, Netmarble, Kakao Games)
-**Checkpoint A**: Complete (MVP 1.0-1.3)
+이것은 포트폴리오 프로젝트입니다. 코드는 데모 목적으로 제공됩니다.
+
+---
+
+## 연락처
+
+**프로젝트**: Arena60 - Phase 2
+**목표**: 한국 게임 서버 개발자 포지션 (Nexon, Krafton, Netmarble, Kakao Games)
+**Checkpoint A**: 완료 (MVP 1.0-1.3)
