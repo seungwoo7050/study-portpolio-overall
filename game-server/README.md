@@ -546,19 +546,21 @@ matcher <-> Redis (session, room_map, queue) <-> pong_udp (rooms N)
 
 ## 문서
 
-### 설계 문서
+### 설계 문서 (Design)
 
-**gameserver-fundamentals**:
-- [Lab 1.1 - TCP 에코 서버](design/gameserver-fundamentals/lab1.1.md)
-- [Lab 1.2 - 턴제 전투](design/gameserver-fundamentals/lab1.2.md)
-- [Lab 1.3 - WebSocket 채팅](design/gameserver-fundamentals/lab1.3.md)
-- [Lab 1.4 - 실시간 Pong (60 TPS)](design/gameserver-fundamentals/lab1.4.md)
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
 
-**netcode-core**:
-- [v1.0 - UDP 권위 코어](design/netcode-core/1.0-udp-authority-core.md)
-- [v1.1 - 스냅샷/델타](design/netcode-core/1.1-snapshot-delta.md)
-- [v1.2 - 관측성](design/netcode-core/1.2-observability.md)
-- [v1.3 - 매치/룸 분리](design/netcode-core/1.3-match-room-split.md)
+**gameserver-fundamentals (Track A)**:
+- **[Lab 1.1](design/gameserver-fundamentals/lab1.1.md)**: TCP 에코 서버 - 멀티스레드, POSIX 소켓, RAII
+- **[Lab 1.2](design/gameserver-fundamentals/lab1.2.md)**: 턴제 전투 - 10 TPS 고정 루프, 게임 상태
+- **[Lab 1.3](design/gameserver-fundamentals/lab1.3.md)**: WebSocket 채팅 - Boost.Beast, 멀티룸, 브로드캐스트
+- **[Lab 1.4](design/gameserver-fundamentals/lab1.4.md)**: 실시간 Pong - 60 TPS WebSocket, 키 입력, 물리
+
+**netcode-core (Track B)**:
+- **[v1.0](design/netcode-core/1.0-udp-authority-core.md)**: UDP 권위 코어 - UDP 신뢰성 레이어, CI/CD
+- **[v1.1](design/netcode-core/1.1-snapshot-delta.md)**: 스냅샷/델타 - 델타 압축, 클라이언트 예측, 리컨실리에이션
+- **[v1.2](design/netcode-core/1.2-observability.md)**: 관측성 - Prometheus, Grafana, 부하 테스트
+- **[v1.3](design/netcode-core/1.3-match-room-split.md)**: 매치/룸 분리 - Redis, 세션 복구, 매치메이커
 
 ### 빠른 시작 가이드
 

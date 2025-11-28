@@ -1,4 +1,73 @@
-# React 웹 패턴 훈련 프로젝트 – 단일 프론트 리포지토리 설계
+# React 웹 패턴 훈련 프로젝트
+
+**상태**: ✅ 설계 완료 (Milestone 1-6 명세)
+**기술 스택**: React 18 · TypeScript 5 · Vite · React Router · React Query · TailwindCSS
+
+현대적인 React 패턴과 모범 사례를 체계적으로 연습하기 위한 단일 페이지 애플리케이션(SPA) 프로젝트.
+
+---
+
+## 프로젝트 개요
+
+### 목적
+
+단일 React + TypeScript 프로젝트로 다음 핵심 기능들을 구현하며 실무 패턴을 학습:
+
+* **CRUD 화면** - 이슈 트래커 기반 데이터 관리
+* **인증/인가** - JWT 기반 인증 및 역할 기반 접근 제어
+* **팀/역할(RBAC)** - 다중 역할 권한 시스템
+* **통계/대시보드** - 데이터 시각화 및 차트
+* **검색/필터** - 복잡한 검색 UI 및 상태 관리
+* **테스트/E2E** - Jest, React Testing Library, Cypress/Playwright
+* **접근성** - 기본 a11y 준수
+
+### 기술 스택
+
+- **React 18**: 훅을 사용한 현대적 UI 프레임워크
+- **TypeScript 5**: 타입 안전 JavaScript
+- **Vite**: 초고속 빌드 도구
+- **React Router v6**: 클라이언트 사이드 라우팅
+- **React Query (TanStack Query)**: 서버 상태 관리
+- **react-hook-form + zod**: 폼 관리 및 검증
+- **TailwindCSS**: 유틸리티 우선 CSS 프레임워크
+- **Jest + React Testing Library**: 유닛 테스트
+- **Cypress 또는 Playwright**: E2E 테스트
+
+### 백엔드 요구사항
+
+이 프론트엔드 프로젝트는 **백엔드 독립적**입니다:
+* 실제 백엔드 API (Node.js, Spring Boot 등)와 통합 가능
+* json-server, MSW(Mock Service Worker) 등으로 mock 가능
+* API 스펙은 아래 섹션에 정의됨
+
+---
+
+## 마일스톤 진행 상태
+
+| Milestone | 주제 | 상태 |
+|-----------|------|------|
+| 1 | 부트스트랩 & 라우팅 & CI | 📝 설계 완료 |
+| 2 | Issue Tracker CRUD 화면 | 📝 설계 완료 |
+| 3 | 로그인/인증/인가 UX | 📝 설계 완료 |
+| 4 | 통계/데이터 패칭 패턴 | 📝 설계 완료 |
+| 5 | 검색/필터 UI + 성능 기초 | 📝 설계 완료 |
+| 6 | 테스트 전략 & E2E & 접근성 | 📝 설계 완료 |
+
+---
+
+## 설계 문서
+
+프로젝트의 상세한 설계 및 구현 가이드는 `design/` 폴더를 참조하세요:
+
+- **[Milestone 1](design/milestone-1.md)**: Vite + React + TypeScript 세팅, 라우팅, 기본 레이아웃
+- **[Milestone 2](design/milestone-2.md)**: 이슈 트래커 CRUD, React Query, 폼 관리
+- **[Milestone 3](design/milestone-3.md)**: JWT 인증, RBAC, 팀 관리
+- **[Milestone 4](design/milestone-4.md)**: 통계 대시보드, 차트, 로딩/에러 상태
+- **[Milestone 5](design/milestone-5.md)**: 상품 검색, 필터, 성능 최적화
+- **[Milestone 6](design/milestone-6.md)**: 테스트 전략, E2E, 접근성 기초
+- **[CI 설정](design/ci.md)**: GitHub Actions CI/CD 파이프라인
+
+---
 
 ## 1. 개요
 
@@ -13,7 +82,7 @@
   * 검색/필터
   * 테스트/E2E/기본 접근성
     을 연습한다.
-* 백엔드는 “이 문서의 API 스펙을 만족하는 아무 구현"이면 된다.
+* 백엔드는 "이 문서의 API 스펙을 만족하는 아무 구현"이면 된다.
 
   * 실제 백엔드가 없으면 json-server, MSW 등으로 mock 해도 된다.
 

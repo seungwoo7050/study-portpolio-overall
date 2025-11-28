@@ -442,6 +442,15 @@ clang-tidy server/src/*.cpp -- -Iserver/include
 
 ## 문서
 
+### 설계 문서 (Design)
+
+프로젝트의 **가장 정확하고 상세한 설계 정보**는 `design/` 폴더를 참조하세요:
+
+- **[MVP 1.0](design/mvp-1.0.md)**: 기본 게임 서버 - WebSocket, 60 TPS 게임 루프, 플레이어 이동, PostgreSQL
+- **[MVP 1.1](design/mvp-1.1.md)**: 전투 시스템 - 발사체 물리, 충돌 감지, 데미지, 전투 로그
+- **[MVP 1.2](design/mvp-1.2.md)**: 매치메이킹 - ELO 기반 큐, 허용 범위 확대, 동시 매치
+- **[MVP 1.3](design/mvp-1.3.md)**: 통계 & 랭킹 - 사후 통계, ELO 레이팅, 글로벌 리더보드
+
 ### MVP 명세
 - `docs/mvp-specs/mvp-1.0.md` - 기본 게임 서버
 - `docs/mvp-specs/mvp-1.1.md` - 전투 시스템

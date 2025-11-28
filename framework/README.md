@@ -1,11 +1,17 @@
 # mini-spring – 프레임워크를 처음부터 만들기
 
-**상태**: ✅ Phase 1 완료
+**상태**: ✅ Phase 1 완료 (Milestone 1.1 - 1.4.5)
 **완료 날짜**: 2025-10-31
 
 Spring Boot, Django 및 기타 프레임워크가 내부적으로 어떻게 작동하는지 이해하기 위해 처음부터 구축한 경량 웹 프레임워크.
 
-## 검증
+**목적**: 웹 프레임워크의 내부 동작을 깊이 이해하기 위한 학습 프로젝트
+
+---
+
+## 빠른 시작
+
+### 검증
 
 ```bash
 # 클론 및 실행
@@ -16,24 +22,60 @@ cd mini-spring
 
 # 테스트
 curl http://localhost:8080/api/users
+curl http://localhost:8080/health
 ```
+
+### 주요 엔드포인트
+
+```bash
+# 헬스 체크
+GET /health
+
+# 사용자 목록 (인증 필요)
+GET /api/users
+Header: Authorization: Bearer secrettoken
+
+# 사용자 조회
+GET /api/users/{id}
+```
+
+---
+
+## 상태
+
+| Milestone | 주제 | 상태 |
+|-----------|------|------|
+| 1.1 | HTTP/1.1 서버 (원시 소켓) | ✅ 완료 |
+| 1.2 | 미니 프레임워크 (라우팅, 미들웨어, DI) | ✅ 완료 |
+| 1.3 | 연결 풀링 | ✅ 완료 |
+| 1.4 | 통합 샘플 앱 | ✅ 완료 |
+| 1.4.5 | Spring Boot 브릿지 | ✅ 완료 |
+
+---
 
 ## 데모
 
 샘플 워크스루 스크린샷 및 녹화는 `docs/evidence/m1.4/`에서 확인할 수 있습니다.
 
-## 증거
+**증거 리포트**: 모든 검증 리포트는 `docs/evidence/`에서 확인할 수 있습니다.
 
-모든 검증 리포트는 `docs/evidence/`에서 확인할 수 있습니다.
+---
+
+## 설계 문서
+
+프로젝트의 상세한 설계 및 구현 내용은 `design/` 폴더를 참조하세요:
+
+- **[Milestone 1.1](design/1.1-http-server.md)**: HTTP/1.1 서버 (원시 소켓)
+- **[Milestone 1.2](design/1.2-mini-framework.md)**: 프레임워크 코어 (라우팅, 미들웨어, DI)
+- **[Milestone 1.3](design/1.3-connection-pool.md)**: 스레드 안전 연결 풀링
+- **[Milestone 1.4](design/1.4-integration.md)**: 통합 샘플 애플리케이션
+- **[Milestone 1.4.5](design/1.4.5-spring-bridge.md)**: Spring Boot 통합 브릿지
+
+---
 
 ## 다음 단계
 
 Phase 2: sagaline (프로덕션 전자상거래 플랫폼) 준비 완료
-
-## 연락처
-
-Email: your.email@example.com
-LinkedIn: https://www.linkedin.com/in/your-profile
 
 ## 구현된 기능
 - [x] HTTP/1.1 서버 (원시 소켓)
